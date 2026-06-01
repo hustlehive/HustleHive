@@ -4,10 +4,11 @@ const asyncHandler = require("express-async-handler");
 
 const generateOTP = require("../utils/generateOTP");
 const sendEmail = require("../utils/sendEmail");
+const generateToken = require("../utils/generateToken");
 
 const getCollegeFromEmail = (email) => {
 
-    if (email.endsWith("@nsut.ac.in") || email=="bhuwancp130106@gmail.com") {
+    if (email.endsWith("@nsut.ac.in") || email == "bhuwancp130106@gmail.com") {
         return "NSUT";
     }
 
@@ -26,14 +27,12 @@ const sendOTP = asyncHandler(async (req, res) => {
 
     const { email } = req.body;
 
-
     // Check Email Exists
     if (!email) {
 
         res.status(400);
         throw new Error("Email is required");
     }
-
 
     // Validate College Email
     const college = getCollegeFromEmail(email);
@@ -44,28 +43,23 @@ const sendOTP = asyncHandler(async (req, res) => {
         throw new Error("Only college email IDs are allowed");
     }
 
-
     // Check Existing User
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
 
         res.status(400);
-        throw new Error("User already exists");
+        throw new Error("Email already in use");
     }
-
 
     // Generate OTP
     const otp = generateOTP();
 
-
     // OTP Expiry (5 mins)
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
-
     // Delete Previous OTPs
     await OTP.deleteMany({ email });
-
 
     // Save OTP
     await OTP.create({
@@ -74,12 +68,11 @@ const sendOTP = asyncHandler(async (req, res) => {
         expiresAt
     });
 
-
     // Send Email
     await sendEmail(
         email,
         "HustleHive OTP Verification",
-        `Your OTP is ${otp}`
+        `Your one time password for registration on HustleHive is ${otp}`
     );
 
 
@@ -89,4 +82,95 @@ const sendOTP = asyncHandler(async (req, res) => {
     });
 });
 
-module.exports = sendOTP;
+const registerUser = asyncHandler(async (req, res) => {
+
+    const {
+        fullName,
+        username,
+        email,
+        password,
+        otp
+    } = req.body;
+
+
+    // Check Required Fields
+    if (!fullName || !username || !email || !password || !otp) {
+        res.status(400);
+        throw new Error("All fields are required");
+    }
+
+
+    // Validate College Email
+    const college = getCollegeFromEmail(email);
+
+    if (!college) {
+        res.status(400);
+        throw new Error("Invalid college email");
+    }
+
+    // Check Existing User
+    const existingUser = await User.findOne({
+        $or: [
+            { email },
+            { username }
+        ]
+    });
+
+    if (existingUser) {
+        res.status(400);
+        throw new Error("User already exists");
+    }
+
+    // Find OTP
+    const otpRecord = await OTP.findOne({ email });
+
+    if (!otpRecord) {
+        res.status(400);
+        throw new Error("OTP not found");
+    }
+
+    // Check OTP Match
+    if (otpRecord.otp !== otp) {
+        res.status(400);
+        throw new Error("Invalid OTP");
+    }
+
+    // Check OTP Expiry
+    if (Date.now() > otpRecord.expiresAt) {
+        res.status(400);
+        throw new Error("OTP expired");
+    }
+
+    // Create User
+    const user = await User.create({
+        fullName,
+        username,
+        email,
+        password,
+        college
+    });
+
+    // Delete OTP After Successful Registration
+    await OTP.deleteMany({ email });
+
+    // Response
+    res.status(201).json({
+        success: true,
+
+        token: generateToken(user._id),
+
+        user: {
+            id: user._id,
+            fullName: user.fullName,
+            username: user.username,
+            email: user.email,
+            college: user.college,
+            role: user.role
+        }
+    });
+});
+
+module.exports = {
+    sendOTP,
+    registerUser
+};

@@ -20,7 +20,7 @@ const startServer = async () => {
         await connectDB();
 
         app.listen(PORT, () => {
-            console.log(`Server running on port ${PORT}`);
+            console.log(`HustleHive Server running on port ${PORT}`);
         });
 
     } catch (error) {
@@ -36,6 +36,7 @@ app.use(cors());
 app.use(morgan("dev"));
 
 
+//ROUTES
 app.get('/', (req, res)=>{
     res.send("HustleHive API Running");
 });
