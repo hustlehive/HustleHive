@@ -12,6 +12,8 @@ dotenv.config();
 
 const app = express();
 
+const authRoutes = require("./routes/authRoutes");
+
 const startServer = async () => {
     try {
 
@@ -38,7 +40,7 @@ app.get('/', (req, res)=>{
     res.send("HustleHive API Running");
 });
 
-
+app.use("/api/auth", authRoutes);
 
 //error middleware
 app.use(notFound);
