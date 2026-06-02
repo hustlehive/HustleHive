@@ -12,6 +12,7 @@ dotenv.config();
 
 const app = express();
 
+//route files
 const authRoutes = require("./routes/authRoutes");
 
 const startServer = async () => {

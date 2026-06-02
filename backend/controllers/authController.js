@@ -170,7 +170,62 @@ const registerUser = asyncHandler(async (req, res) => {
     });
 });
 
+
+const loginUser = asyncHandler(async (req, res) => {
+
+    const { email, password } = req.body;
+
+    // Validate Fields
+    if (!email || !password) {
+        res.status(400);
+        throw new Error("Email and password are required");
+    }
+
+    // Find User
+    const user = await User.findOne({ email });
+
+    if (!user) {
+        res.status(401);
+        throw new Error("Invalid email or password");
+    }
+
+
+    // Compare Password
+    const isMatch = await user.matchPassword(password);
+
+    if (!isMatch) {
+        res.status(401);
+        throw new Error("Invalid email or password");
+    }
+
+
+    // Response
+    res.status(200).json({
+        success: true,
+
+        token: generateToken(user._id),
+
+        user: {
+            id: user._id,
+            fullName: user.fullName,
+            username: user.username,
+            email: user.email,
+            college: user.college,
+            role: user.role
+        }
+    });
+});
+
+const getMe = asyncHandler(async (req, res) => {
+    res.status(200).json({
+        success: true,
+        user: req.user
+    });
+});
+
 module.exports = {
     sendOTP,
-    registerUser
+    registerUser,
+    loginUser,
+    getMe
 };
