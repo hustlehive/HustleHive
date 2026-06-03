@@ -1,7 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const {
-    createHustle
+    createHustle,
+    getHustles
 } = require("../controllers/hustleController");
 
 const {
@@ -10,5 +11,6 @@ const {
 
 
 router.post("/", protect, createHustle);
+router.get("/", protect, getHustles);
 
 module.exports = router;
