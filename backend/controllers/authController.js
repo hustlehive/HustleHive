@@ -29,7 +29,6 @@ const sendOTP = asyncHandler(async (req, res) => {
 
     // Check Email Exists
     if (!email) {
-
         res.status(400);
         throw new Error("Email is required");
     }
@@ -38,7 +37,6 @@ const sendOTP = asyncHandler(async (req, res) => {
     const college = getCollegeFromEmail(email);
 
     if (!college) {
-
         res.status(400);
         throw new Error("Only college email IDs are allowed");
     }
