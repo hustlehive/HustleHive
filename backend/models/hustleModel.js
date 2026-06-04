@@ -39,7 +39,7 @@ const hustleSchema = mongoose.Schema(
 
         status: {
             type: String,
-            enum: ["active", "completed", "cancelled"],
+            enum: ["active", "assigned", "completed", "cancelled"],
             default: "active"
         },
 

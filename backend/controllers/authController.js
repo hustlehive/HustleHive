@@ -63,6 +63,7 @@ const sendOTP = asyncHandler(async (req, res) => {
     await OTP.create({
         email,
         otp,
+        purpose: "register",
         expiresAt
     });
 
@@ -171,20 +172,25 @@ const registerUser = asyncHandler(async (req, res) => {
 
 const loginUser = asyncHandler(async (req, res) => {
 
-    const { email, password } = req.body;
+    const { identifier, password } = req.body;
 
     // Validate Fields
-    if (!email || !password) {
+    if (!identifier || !password) {
         res.status(400);
-        throw new Error("Email and password are required");
+        throw new Error("Identifier and password are required");
     }
 
     // Find User
-    const user = await User.findOne({ email });
+    const user = await User.findOne({
+        $or: [
+            { email: identifier.toLowerCase() },
+            { username: identifier }
+        ]
+    });
 
     if (!user) {
         res.status(401);
-        throw new Error("Invalid email or password");
+        throw new Error("Invalid username/email or password");
     }
 
 
@@ -193,7 +199,7 @@ const loginUser = asyncHandler(async (req, res) => {
 
     if (!isMatch) {
         res.status(401);
-        throw new Error("Invalid email or password");
+        throw new Error("Invalid username/email or password");
     }
 
 
@@ -221,9 +227,116 @@ const getMe = asyncHandler(async (req, res) => {
     });
 });
 
+const forgotPassword = asyncHandler(async (req, res) => {
+
+    const { email } = req.body;
+
+    if (!email) {
+        res.status(400);
+        throw new Error("Email is required");
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+        res.status(404);
+        throw new Error("User not found");
+    }
+
+    const otp = generateOTP();
+
+    const expiresAt = new Date(
+        Date.now() + 5 * 60 * 1000
+    );
+
+    await OTP.deleteMany({
+        email,
+        purpose: "forgot-password"
+    });
+
+    await OTP.create({
+        email,
+        otp,
+        purpose: "forgot-password",
+        expiresAt
+    });
+
+    await sendEmail(
+        email,
+        "HustleHive Password Reset OTP",
+        `Your password reset OTP is ${otp}`
+    );
+
+    res.status(200).json({
+        success: true,
+        message: "Password reset OTP sent successfully"
+    });
+});
+
+const resetPassword = asyncHandler(async (req, res) => {
+
+    const {
+        email,
+        otp,
+        newPassword
+    } = req.body;
+
+    if (
+        !email ||
+        !otp ||
+        !newPassword
+    ) {
+        res.status(400);
+        throw new Error("All fields are required");
+    }
+
+    const otpRecord = await OTP.findOne({
+        email,
+        purpose: "forgot-password"
+    });
+
+    if (!otpRecord) {
+        res.status(400);
+        throw new Error("OTP not found");
+    }
+
+    if (otpRecord.otp !== otp) {
+        res.status(400);
+        throw new Error("Invalid OTP");
+    }
+
+    if (Date.now() > otpRecord.expiresAt) {
+        res.status(400);
+        throw new Error("OTP expired");
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+        res.status(404);
+        throw new Error("User not found");
+    }
+
+    user.password = newPassword;
+
+    await user.save();
+
+    await OTP.deleteMany({
+        email,
+        purpose: "forgot-password"
+    });
+
+    res.status(200).json({
+        success: true,
+        message: "Password reset successful"
+    });
+});
+
 module.exports = {
     sendOTP,
     registerUser,
     loginUser,
-    getMe
+    getMe,
+    forgotPassword,
+    resetPassword
 };

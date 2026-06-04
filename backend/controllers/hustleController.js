@@ -247,6 +247,121 @@ const getHustleApplicants = asyncHandler(async (req, res) => {
 });
 
 
+const acceptApplication = asyncHandler(async (req, res) => {
+
+    const application = await HustleApplication.findById(req.params.applicationId);
+
+    if (!application) {
+        res.status(404);
+        throw new Error("Application not found");
+    }
+
+    const hustle = await Hustle.findById(application.hustle);
+
+    if (!hustle) {
+        res.status(404);
+        throw new Error("Hustle not found");
+    }
+
+    // Ownership Check
+    if (
+        hustle.createdBy.toString() !==
+        req.user._id.toString()
+    ) {
+        res.status(403);
+        throw new Error("Not authorized");
+    }
+
+    // Already Assigned
+    if (hustle.status === "assigned") {
+        res.status(400);
+        throw new Error(
+            "A candidate has already been selected"
+        );
+    }
+
+    // Accept Application
+    application.status = "accepted";
+
+    await application.save();
+
+    // Update Hustle Status
+    hustle.status = "assigned";
+
+    await hustle.save();
+
+    await HustleApplication.updateMany(
+    {
+        hustle: hustle._id,
+        _id: { $ne: application._id }
+    },
+    {
+        status: "rejected"
+    });
+
+    res.status(200).json({
+        success: true,
+        message: "Applicant accepted"
+    });
+});
+
+
+const rejectApplication = asyncHandler(async (req, res) => {
+
+    const application =
+        await HustleApplication.findById(req.params.applicationId);
+
+    if (!application) {
+        res.status(404);
+        throw new Error("Application not found");
+    }
+
+    const hustle = await Hustle.findById(application.hustle);
+
+    if (!hustle) {
+        res.status(404);
+        throw new Error("Hustle not found");
+    }
+
+    if (
+        hustle.createdBy.toString() !==
+        req.user._id.toString()
+    ) {
+        res.status(403);
+        throw new Error("Not authorized");
+    }
+
+    application.status = "rejected";
+
+    await application.save();
+
+    res.status(200).json({
+        success: true,
+        message: "Application rejected"
+    });
+});
+
+
+const getMyApplications = asyncHandler(async (req, res) => {
+
+    const applications =
+        await HustleApplication.find({
+            applicant: req.user._id
+        })
+            .populate(
+                "hustle",
+                "title reward deadline status"
+            )
+            .sort({ createdAt: -1 });
+
+    res.status(200).json({
+        success: true,
+        count: applications.length,
+        applications
+    });
+});
+
+
 module.exports = {
     createHustle,
     getHustles,
@@ -254,5 +369,8 @@ module.exports = {
     updateHustle,
     deleteHustle,
     applyToHustle,
-    getHustleApplicants
+    getHustleApplicants,
+    acceptApplication,
+    rejectApplication,
+    getMyApplications
 };

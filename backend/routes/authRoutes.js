@@ -6,12 +6,16 @@ const {
     sendOTP,
     registerUser,
     loginUser,
-    getMe
+    getMe,
+    forgotPassword,
+    resetPassword
 } = require("../controllers/authController");
 
 router.post("/send-otp", sendOTP);
 router.post("/register", registerUser);
 router.post("/login", loginUser);
 router.get("/me", protect, getMe);
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password", resetPassword);
 
 module.exports = router;

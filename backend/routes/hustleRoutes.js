@@ -7,7 +7,10 @@ const {
     updateHustle,
     deleteHustle,
     applyToHustle,
-    getHustleApplicants
+    getHustleApplicants,
+    acceptApplication,
+    rejectApplication,
+    getMyApplications
 } = require("../controllers/hustleController");
 
 const {
@@ -22,5 +25,8 @@ router.put("/:id", protect, updateHustle);
 router.delete("/:id", protect, deleteHustle);
 router.post("/:id/apply", protect, applyToHustle);
 router.get("/:id/applicants", protect, getHustleApplicants);
+router.put("/applications/:applicationId/accept", protect, acceptApplication);
+router.put("/applications/:applicationId/reject", protect, rejectApplication);
+router.get("/applications/my-applications", protect, getMyApplications);
 
 module.exports = router;

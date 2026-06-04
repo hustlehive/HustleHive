@@ -13,7 +13,8 @@ const userSchema = mongoose.Schema(
             unique: true,
             trim: true,
             minlength: 3,
-            maxlength: 20
+            maxlength: 20,
+            lowercase: true
         },
 
         email: {
@@ -60,12 +61,14 @@ const userSchema = mongoose.Schema(
 // Password Hash Middleware
 userSchema.pre("save", async function (next) {
     if (!this.isModified("password")) {
-        next();
+        return next();
     }
 
     const salt = await bcrypt.genSalt(10);
 
     this.password = await bcrypt.hash(this.password, salt);
+
+    // next();
 });
 
 
