@@ -264,7 +264,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
     await sendEmail(
         email,
         "HustleHive Password Reset OTP",
-        `Your password reset OTP is ${otp}`
+        `Hi ${user.fullName}! Your password reset OTP is ${otp}`
     );
 
     res.status(200).json({
@@ -325,6 +325,12 @@ const resetPassword = asyncHandler(async (req, res) => {
         email,
         purpose: "forgot-password"
     });
+
+    await sendEmail(
+        email,
+        "HustleHive Password changed",
+        `Hi ${user.fullName}! Your HustleHive password has been changed succesfully.`
+    );
 
     res.status(200).json({
         success: true,
