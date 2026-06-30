@@ -97,6 +97,11 @@ const acceptFriendRequest = asyncHandler(async (req, res) => {
         throw new Error("Not authorized");
     }
 
+    if (request.status === "accepted") {
+        res.status(400);
+        throw new Error("Already accepted");
+    }
+
     request.status = "accepted";
 
     await request.save();

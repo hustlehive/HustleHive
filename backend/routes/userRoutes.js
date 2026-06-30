@@ -22,16 +22,14 @@ const {
 } = require("../controllers/friendController");
 
 
-router.get("/search", protect, searchUsers); //ok
-router.post("/request/:userId", protect, sendFriendRequest);//ok
-router.get("/requests/received", protect, getReceivedRequests);//ok
-router.get("/requests/sent", protect, getSentRequests);//ok
-router.put("/requests/:requestId/accept", protect, acceptFriendRequest);//ok
-router.delete("/requests/:requestId/reject", protect, rejectFriendRequest);//ok
-router.delete("/requests/:requestId/cancel", protect, cancelFriendRequest);//ok
-router.get("/friends", protect, getFriends);//ok
-router.delete("/friends/:userId/unfriend", protect, unfriend);//ok
+router.get("/search", protect, searchUsers);  
+router.post("/request/:userId", protect, sendFriendRequest); 
+router.get("/requests/received", protect, getReceivedRequests); 
+router.get("/requests/sent", protect, getSentRequests); 
+router.put("/requests/:requestId/accept", protect, acceptFriendRequest); 
+router.delete("/requests/:requestId/reject", protect, rejectFriendRequest); 
+router.delete("/requests/:requestId/cancel", protect, cancelFriendRequest); 
+router.get("/friends", protect, getFriends); 
+router.delete("/friends/:userId/unfriend", protect, unfriend); 
 
 module.exports = router;
-
-//http://localhost:5000/api/users

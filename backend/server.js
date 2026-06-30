@@ -16,6 +16,7 @@ const app = express();
 const authRoutes = require("./routes/authRoutes");
 const hustleRoutes = require("./routes/hustleRoutes");
 const userRoutes = require("./routes/userRoutes");
+const messageRoutes = require("./routes/friendMessageRoutes");
 
 const startServer = async () => {
     try {
@@ -47,6 +48,7 @@ app.get('/', (req, res)=>{
 app.use("/api/auth", authRoutes);
 app.use("/api/hustles", hustleRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/messages", messageRoutes);
 
 //error middleware
 app.use(notFound);
