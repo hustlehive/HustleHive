@@ -2,46 +2,50 @@ const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const morgan = require("morgan");
-const {notFound, errorHandler} = require("./middleware/errorMiddleware");
-
-const PORT = process.env.PORT || 5000;
+const http = require("http");
+const { Server } = require("socket.io");
+const { setIO } = require("./socket/socketService");
 
 const connectDB = require("./config/db");
+const {
+    notFound,
+    errorHandler
+} = require("./middleware/errorMiddleware");
 
-dotenv.config();
+const initializeSocket = require("./socket/socketHandler");
 
-const app = express();
-
-//route files
+// Route files
 const authRoutes = require("./routes/authRoutes");
 const hustleRoutes = require("./routes/hustleRoutes");
 const userRoutes = require("./routes/userRoutes");
 const messageRoutes = require("./routes/friendMessageRoutes");
 
-const startServer = async () => {
-    try {
+dotenv.config();
 
-        await connectDB();
+const PORT = process.env.PORT || 5000;
 
-        app.listen(PORT, () => {
-            console.log(`HustleHive Server running on port ${PORT}`);
-        });
+const app = express();
 
-    } catch (error) {
+const server = http.createServer(app);
 
-        console.log(error.message);
-
+const io = new Server(server, {
+    cors: {
+        origin: "*"
     }
-};
+});
+setIO(io);
 
-//middlewares
+
+// Initialize Socket.IO
+initializeSocket(io);
+
+// Middlewares
 app.use(express.json());
 app.use(cors());
 app.use(morgan("dev"));
 
-
-//ROUTES
-app.get('/', (req, res)=>{
+// Routes
+app.get("/", (req, res) => {
     res.send("HustleHive API Running");
 });
 
@@ -50,8 +54,26 @@ app.use("/api/hustles", hustleRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/messages", messageRoutes);
 
-//error middleware
+// Error Middlewares
 app.use(notFound);
 app.use(errorHandler);
+
+const startServer = async () => {
+
+    try {
+
+        await connectDB();
+
+        server.listen(PORT, () => {
+            console.log(`HuslteHive server started on port:  ${PORT}`);
+        });
+
+    } catch (error) {
+
+        console.error(error.message);
+
+    }
+
+};
 
 startServer();

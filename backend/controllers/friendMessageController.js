@@ -4,6 +4,8 @@ const FriendConversation = require("../models/friendConversationModel");
 const FriendMessage = require("../models/friendMessageModel");
 const FriendRequest = require("../models/friendRequestModel");
 const User = require("../models/userModel");
+const { getIO } = require("../socket/socketService");
+const { getSocketId } = require("../socket/socketManager");
 
 
 const sendMessage = asyncHandler(async (req, res) => {
@@ -82,6 +84,22 @@ const sendMessage = asyncHandler(async (req, res) => {
 
     await conversation.save();
 
+    const receiverSocketId = getSocketId(friendId);
+
+    if (receiverSocketId) {
+        const io = getIO();
+
+        io.to(receiverSocketId).emit(
+            "new-message",
+            {
+                conversationId:
+                    conversation._id,
+
+                message
+            }
+        );
+    }
+
     res.status(201).json({
         success: true,
         message
@@ -94,7 +112,7 @@ const getMessages = asyncHandler(async (req, res) => {
 
     const friendId = req.params.friendId;
 
-    if(friendId==req.user.id){
+    if (friendId == req.user.id) {
         res.status(400);
         throw new Error("Friend id requested is same as logged in user id");
     }
