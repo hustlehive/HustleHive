@@ -1,6 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const Hustle = require("../models/hustleModel");
 const HustleApplication = require("../models/hustleApplicationModel");
+const createNotification = require("../utils/createNotification");
 
 const createHustle = asyncHandler(async (req, res) => {
 
@@ -207,6 +208,16 @@ const applyToHustle = asyncHandler(async (req, res) => {
             applicant: req.user._id
         });
 
+    await createNotification({
+        receiver: hustle.createdBy,
+        sender: req.user._id,
+        type: "hustle_application",
+        title: "New Application",
+        body: `${req.user.fullName} applied to your hustle.`,
+        referenceId: application._id,
+        referenceType: "Application"
+    });
+
     res.status(201).json({
         success: true,
         message: "Applied successfully",
@@ -236,8 +247,8 @@ const getHustleApplicants = asyncHandler(async (req, res) => {
 
     // Fetch Applications
     const applications = await HustleApplication.find({
-            hustle: req.params.id
-        }).populate("applicant", "username fullName college").sort({ createdAt: -1 });
+        hustle: req.params.id
+    }).populate("applicant", "username fullName college").sort({ createdAt: -1 });
 
     res.status(200).json({
         success: true,
@@ -290,14 +301,24 @@ const acceptApplication = asyncHandler(async (req, res) => {
 
     await hustle.save();
 
-    await HustleApplication.updateMany(
-    {
-        hustle: hustle._id,
-        _id: { $ne: application._id }
-    },
-    {
-        status: "rejected"
+    await createNotification({
+        receiver: application.applicant,
+        sender: req.user._id,
+        type: "application_accepted",
+        title: "Application Accepted",
+        body: `Your application has been accepted.`,
+        referenceId: application._id,
+        referenceType: "Application"
     });
+
+    await HustleApplication.updateMany(
+        {
+            hustle: hustle._id,
+            _id: { $ne: application._id }
+        },
+        {
+            status: "rejected"
+        });
 
     res.status(200).json({
         success: true,
@@ -334,6 +355,16 @@ const rejectApplication = asyncHandler(async (req, res) => {
     application.status = "rejected";
 
     await application.save();
+
+    await createNotification({
+        receiver: application.applicant,
+        sender: req.user._id,
+        type: "application_rejected",
+        title: "Application Rejected",
+        body: `Your application has been rejected.`,
+        referenceId: application._id,
+        referenceType: "Application"
+    });
 
     res.status(200).json({
         success: true,

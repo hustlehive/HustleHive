@@ -18,7 +18,8 @@ const initializeSocket = require("./socket/socketHandler");
 const authRoutes = require("./routes/authRoutes");
 const hustleRoutes = require("./routes/hustleRoutes");
 const userRoutes = require("./routes/userRoutes");
-const messageRoutes = require("./routes/friendMessageRoutes");
+const messageRoutes = require("./routes/messageRoutes");
+const notificationRoutes=require("./routes/notificationRoutes");
 
 dotenv.config();
 
@@ -53,6 +54,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/hustles", hustleRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // Error Middlewares
 app.use(notFound);

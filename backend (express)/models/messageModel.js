@@ -1,10 +1,10 @@
 const mongoose = require("mongoose");
 
-const friendMessageSchema = mongoose.Schema(
+const messageSchema = new mongoose.Schema(
     {
         conversation: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "FriendConversation",
+            ref: "Conversation",
             required: true
         },
 
@@ -30,7 +30,17 @@ const friendMessageSchema = mongoose.Schema(
             default: "text"
         },
 
-        isRead: {
+        isEdited: {
+            type: Boolean,
+            default: false
+        },
+
+        editedAt: {
+            type: Date,
+            default: null
+        },
+
+        deletedForEveryone: {
             type: Boolean,
             default: false
         }
@@ -40,9 +50,7 @@ const friendMessageSchema = mongoose.Schema(
     }
 );
 
-const FriendMessage = mongoose.model(
-    "FriendMessage",
-    friendMessageSchema
+module.exports = mongoose.model(
+    "Message",
+    messageSchema
 );
-
-module.exports = FriendMessage;

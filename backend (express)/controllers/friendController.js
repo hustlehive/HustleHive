@@ -1,6 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const User = require("../models/userModel");
 const FriendRequest = require("../models/friendRequestModel");
+const createNotification = require("../utils/createNotification");
 
 
 const sendFriendRequest = asyncHandler(async (req, res) => {
@@ -47,6 +48,16 @@ const sendFriendRequest = asyncHandler(async (req, res) => {
     const request = await FriendRequest.create({
         sender: req.user._id,
         receiver: receiverId
+    });
+
+    await createNotification({
+        receiver: receiverId,
+        sender: req.user._id,
+        type: "friend_request",
+        title: "New Friend Request",
+        body: `${req.user.fullName} sent you a friend request.`,
+        referenceId: request._id,
+        referenceType: "FriendRequest"
     });
 
     res.status(201).json({
@@ -105,6 +116,16 @@ const acceptFriendRequest = asyncHandler(async (req, res) => {
     request.status = "accepted";
 
     await request.save();
+
+    await createNotification({
+        receiver: request.sender,
+        sender: req.user._id,
+        type: "friend_accept",
+        title: "Friend Request Accepted",
+        body: `${req.user.fullName} accepted your friend request.`,
+        referenceId: request._id,
+        referenceType: "FriendRequest"
+    });
 
     res.status(200).json({
         success: true,
