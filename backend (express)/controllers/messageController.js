@@ -2,14 +2,14 @@ const asyncHandler = require("express-async-handler");
 const createNotification = require("../utils/createNotification");
 
 const mongoose = require("mongoose");
-const Application = require("../models/applicationModel");
+const Application = require("../models/hustleApplicationModel");
 const Conversation = require("../models/conversationModel");
 const Message = require("../models/messageModel");
 const FriendRequest = require("../models/friendRequestModel");
 const Hustle = require("../models/hustleModel");
 const User = require("../models/userModel");
 const { getIO } = require("../socket/socketService");
-const { getSocketId } = require("../socket/socketManager");
+const { getSocketId } = require("../socket/socketManager"); 
 
 const startConversation = asyncHandler(async (req, res) => {
 

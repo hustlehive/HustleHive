@@ -1,12 +1,14 @@
 const express = require("express");
 const router = express.Router();
+const upload=require("../middleware/uploadMiddleware");
 
 const {
     protect
 } = require("../middleware/authMiddleware");
 
 const {
-    searchUsers
+    searchUsers,
+    uploadProfilePicture
 } = require("../controllers/userController");
 
 
@@ -31,5 +33,6 @@ router.delete("/requests/:requestId/reject", protect, rejectFriendRequest);
 router.delete("/requests/:requestId/cancel", protect, cancelFriendRequest); 
 router.get("/friends", protect, getFriends); 
 router.delete("/friends/:userId/unfriend", protect, unfriend); 
+router.put("/profile-picture-upload", protect, upload.single("image"), uploadProfilePicture);
 
 module.exports = router;

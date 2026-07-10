@@ -1,5 +1,7 @@
-const express = require("express");
 const dotenv = require("dotenv");
+dotenv.config();
+
+const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
 const http = require("http");
@@ -21,7 +23,7 @@ const userRoutes = require("./routes/userRoutes");
 const messageRoutes = require("./routes/messageRoutes");
 const notificationRoutes=require("./routes/notificationRoutes");
 
-dotenv.config();
+
 
 const PORT = process.env.PORT || 5000;
 

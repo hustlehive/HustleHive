@@ -109,6 +109,28 @@ const searchUsers = asyncHandler(async (req, res) => {
     });
 });
 
+
+const uploadProfilePicture = asyncHandler(async (req, res) => {
+
+    if (!req.file) {
+        res.status(400);
+        throw new Error("Image is required");
+    }
+    console.log(req.file);
+    console.log(req.user);
+
+    req.user.profilePic = req.file.path;
+
+    await req.user.save();
+
+    res.status(200).json({
+        success: true,
+        profilePic: req.user.profilePic
+    });
+
+});
+
 module.exports = {
-    searchUsers
+    searchUsers,
+    uploadProfilePicture
 };

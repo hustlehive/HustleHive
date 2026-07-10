@@ -8,7 +8,9 @@ const {
     sendMessage,
     getInbox,
     getMessages,
-    markConversationAsRead
+    markConversationAsRead,
+    editMessage,
+    deleteMessageForEveryone
 } = require("../controllers/messageController");
 
 router.post("/start", protect, startConversation);
