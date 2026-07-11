@@ -5,7 +5,7 @@ const cloudinary=require("../config/cloudinary");
 const storage=new CloudinaryStorage({
     cloudinary,
     params:{
-        folder:"HustleHive",
+        folder:"HustleHive/users",
         allowed_formats:[
             "jpg",
             "jpeg",
@@ -15,8 +15,6 @@ const storage=new CloudinaryStorage({
     }
 });
 
-const upload=multer({
-    storage
-});
+const uploadProfileImage=multer({storage});
 
-module.exports=upload;
+module.exports=uploadProfileImage;

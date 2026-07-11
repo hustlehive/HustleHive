@@ -50,28 +50,70 @@ const markNotificationRead = asyncHandler(async (req, res) => {
 
 });
 
-const markAllNotificationsRead =
-    asyncHandler(async (req, res) => {
+const markAllNotificationsRead = asyncHandler(async (req, res) => {
 
-        await Notification.updateMany(
-            {
-                receiver: req.user._id,
-                isRead: false
-            },
-            {
-                isRead: true
-            }
-        );
+    await Notification.updateMany(
+        {
+            receiver: req.user._id,
+            isRead: false
+        },
+        {
+            isRead: true
+        }
+    );
 
-        res.status(200).json({
-            success: true,
-            message: "All notifications marked as read"
-        });
-
+    res.status(200).json({
+        success: true,
+        message: "All notifications marked as read"
     });
+
+});
+
+const deleteNotification = asyncHandler(async (req, res) => {
+
+    const notification = await Notification.findById(
+        req.params.notificationId
+    );
+
+    if (!notification) {
+        res.status(404);
+        throw new Error("Notification not found");
+    }
+
+    if (
+        notification.receiver.toString() !==
+        req.user._id.toString()
+    ) {
+        res.status(403);
+        throw new Error("Not authorized");
+    }
+
+    await notification.deleteOne();
+
+    res.status(200).json({
+        success: true,
+        message: "Notification deleted"
+    });
+
+});
+
+const deleteAllNotifications=asyncHandler(async(req,res)=>{
+
+    await Notification.deleteMany({
+        receiver:req.user._id
+    });
+
+    res.status(200).json({
+        success:true,
+        message:"All notifications deleted"
+    });
+
+});
 
 module.exports = {
     getNotifications,
     markNotificationRead,
-    markAllNotificationsRead
+    markAllNotificationsRead,
+    deleteNotification,
+    deleteAllNotifications
 };

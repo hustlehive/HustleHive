@@ -9,7 +9,6 @@ const createHustle = asyncHandler(async (req, res) => {
         title,
         description,
         reward,
-        photo,
         deadline
     } = req.body;
 
@@ -25,6 +24,19 @@ const createHustle = asyncHandler(async (req, res) => {
         throw new Error("Please provide all required fields");
     }
 
+    let photo = {
+        url: "",
+        publicId: ""
+    };
+
+    if (req.file) {
+        photo = {
+            url: req.file.path,
+            publicId: req.file.filename
+        };
+
+    }
+
     // Create Hustle
     const hustle = await Hustle.create({
         title,
@@ -32,10 +44,10 @@ const createHustle = asyncHandler(async (req, res) => {
         reward,
         photo,
         deadline,
+        photo,
         college: req.user.college,
         createdBy: req.user._id
     });
-
 
     res.status(200).json({
         success: true,
@@ -45,15 +57,17 @@ const createHustle = asyncHandler(async (req, res) => {
 
 
 const getHustles = asyncHandler(async (req, res) => {
-
     const {
         college,
         minReward,
         maxReward,
-        status
+        status,
+        search,
+        sort,
+        page = 1,
+        limit = 10
     } = req.query;
 
-    // Filter Object
     let filter = {};
 
     // College Filter
@@ -79,16 +93,69 @@ const getHustles = asyncHandler(async (req, res) => {
         }
     }
 
-    // Fetch Hustles
+    // Search
+    if (search) {
+        filter.$or = [
+            {
+                title: {
+                    $regex: search,
+                    $options: "i"
+                }
+            },
+            {
+                description: {
+                    $regex: search,
+                    $options: "i"
+                }
+            }
+        ];
+    }
+
+    // Sorting
+    let sortOption = {
+        createdAt: -1
+    };
+
+    switch (sort) {
+        case "oldest":
+            sortOption = { createdAt: 1 };
+            break;
+        case "reward-asc":
+            sortOption = { reward: 1 };
+            break;
+        case "reward-desc":
+            sortOption = { reward: -1 };
+            break;
+        case "deadline":
+            sortOption = { deadline: 1 };
+            break;
+    }
+
+    const pageNumber = parseInt(page);
+    const limitNumber = parseInt(limit);
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const total = await Hustle.countDocuments(filter);
+
     const hustles = await Hustle.find(filter)
-        .populate("createdBy", "username fullName college")
-        .sort({ createdAt: -1 });
+        .populate(
+            "createdBy",
+            "username fullName college"
+        )
+        .sort(sortOption)
+        .skip(skip)
+        .limit(limitNumber);
 
     res.status(200).json({
         success: true,
+        page: pageNumber,
+        limit: limitNumber,
+        total,
+        totalPages: Math.ceil(total / limitNumber),
         count: hustles.length,
         hustles
     });
+
 });
 
 const getHustleById = asyncHandler(async (req, res) => {
@@ -392,6 +459,83 @@ const getMyApplications = asyncHandler(async (req, res) => {
     });
 });
 
+const uploadHustleImage = asyncHandler(async (req, res) => {
+
+    const hustle = await Hustle.findById(req.params.hustleId);
+
+    if (!hustle) {
+        res.status(404);
+        throw new Error("Hustle not found");
+    }
+
+    if (hustle.createdBy.toString() !== req.user._id.toString()) {
+        res.status(403);
+        throw new Error("Not authorized");
+    }
+
+    if (!req.file) {
+        res.status(400);
+        throw new Error("Image is required");
+    }
+
+    if (hustle.photo.publicId) {
+        await cloudinary.uploader.destroy(
+            hustle.photo.publicId
+        );
+    }
+
+    hustle.photo = {
+        url: req.file.path,
+        publicId: req.file.filename
+    };
+
+    await hustle.save();
+
+    res.status(200).json({
+        success: true,
+        photo: hustle.photo
+    });
+
+});
+
+
+const deleteHustleImage = asyncHandler(async (req, res) => {
+
+    const hustle = await Hustle.findById(req.params.hustleId);
+
+    if (!hustle) {
+        res.status(404);
+        throw new Error("Hustle not found");
+    }
+
+    if (hustle.createdBy.toString() !== req.user._id.toString()) {
+        res.status(403);
+        throw new Error("Not authorized");
+    }
+
+    if (!hustle.photo.publicId) {
+        res.status(400);
+        throw new Error("No image found");
+    }
+
+    await cloudinary.uploader.destroy(
+        hustle.photo.publicId
+    );
+
+    hustle.photo = {
+        url: "",
+        publicId: ""
+    };
+
+    await hustle.save();
+
+    res.status(200).json({
+        success: true,
+        message: "Hustle image deleted"
+    });
+
+});
+
 
 module.exports = {
     createHustle,
@@ -403,5 +547,7 @@ module.exports = {
     getHustleApplicants,
     acceptApplication,
     rejectApplication,
-    getMyApplications
+    getMyApplications,
+    uploadHustleImage,
+    deleteHustleImage
 };

@@ -8,7 +8,7 @@ const generateToken = require("../utils/generateToken");
 
 const getCollegeFromEmail = (email) => {
 
-    if (email.endsWith("@nsut.ac.in") || email == "bhuwancp130106@gmail.com") {
+    if (email.endsWith("@nsut.ac.in")) {
         return "NSUT";
     }
 
@@ -45,7 +45,6 @@ const sendOTP = asyncHandler(async (req, res) => {
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
-
         res.status(400);
         throw new Error("Email already in use");
     }
@@ -82,6 +81,17 @@ const sendOTP = asyncHandler(async (req, res) => {
 });
 
 const registerUser = asyncHandler(async (req, res) => {
+    let profilePic = {
+        url: "",
+        publicId: ""
+    };
+
+    if (req.file) {
+        profilePic = {
+            url: req.file.path,
+            publicId: req.file.filename
+        };
+    }
 
     const {
         fullName,
@@ -94,6 +104,12 @@ const registerUser = asyncHandler(async (req, res) => {
 
     // Check Required Fields
     if (!fullName || !username || !email || !password || !otp) {
+        if (profilePic.publicId) {
+            await cloudinary.uploader.destroy(
+                profilePic.publicId
+            );
+        }
+
         res.status(400);
         throw new Error("All fields are required");
     }
@@ -103,6 +119,12 @@ const registerUser = asyncHandler(async (req, res) => {
     const college = getCollegeFromEmail(email);
 
     if (!college) {
+        if (profilePic.publicId) {
+            await cloudinary.uploader.destroy(
+                profilePic.publicId
+            );
+        }
+
         res.status(400);
         throw new Error("Invalid college email");
     }
@@ -116,6 +138,12 @@ const registerUser = asyncHandler(async (req, res) => {
     });
 
     if (existingUser) {
+        if (profilePic.publicId) {
+            await cloudinary.uploader.destroy(
+                profilePic.publicId
+            );
+        }
+
         res.status(400);
         throw new Error("User already exists");
     }
@@ -124,18 +152,36 @@ const registerUser = asyncHandler(async (req, res) => {
     const otpRecord = await OTP.findOne({ email });
 
     if (!otpRecord) {
+        if (profilePic.publicId) {
+            await cloudinary.uploader.destroy(
+                profilePic.publicId
+            );
+        }
+
         res.status(400);
         throw new Error("OTP not found");
     }
 
     // Check OTP Match
     if (otpRecord.otp !== otp) {
+        if (profilePic.publicId) {
+            await cloudinary.uploader.destroy(
+                profilePic.publicId
+            );
+        }
+
         res.status(400);
         throw new Error("Invalid OTP");
     }
 
     // Check OTP Expiry
     if (Date.now() > otpRecord.expiresAt) {
+        if (profilePic.publicId) {
+            await cloudinary.uploader.destroy(
+                profilePic.publicId
+            );
+        }
+
         res.status(400);
         throw new Error("OTP expired");
     }
@@ -146,7 +192,8 @@ const registerUser = asyncHandler(async (req, res) => {
         username,
         email,
         password,
-        college
+        college,
+        profilePic
     });
 
     // Delete OTP After Successful Registration
@@ -164,7 +211,8 @@ const registerUser = asyncHandler(async (req, res) => {
             username: user.username,
             email: user.email,
             college: user.college,
-            role: user.role
+            role: user.role,
+            profilePic: profilePic
         }
     });
 });

@@ -1,6 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const User = require("../models/userModel");
 const FriendRequest = require("../models/friendRequestModel");
+const cloudinary = require("../config/cloudinary");
 
 const searchUsers = asyncHandler(async (req, res) => {
 
@@ -119,7 +120,16 @@ const uploadProfilePicture = asyncHandler(async (req, res) => {
     console.log(req.file);
     console.log(req.user);
 
-    req.user.profilePic = req.file.path;
+    if (req.user.profilePic.publicId) {
+        await cloudinary.uploader.destroy(
+            req.user.profilePic.publicId
+        );
+    }
+
+    req.user.profilePic = {
+        url: req.file.path,
+        publicId: req.file.filename
+    };
 
     await req.user.save();
 
@@ -130,7 +140,70 @@ const uploadProfilePicture = asyncHandler(async (req, res) => {
 
 });
 
+const deleteProfilePicture = asyncHandler(async (req, res) => {
+
+    if (!req.user.profilePic.publicId) {
+        res.status(400);
+        throw new Error("No profile picture found to delete");
+    }
+
+    await cloudinary.uploader.destroy(
+        req.user.profilePic.publicId
+    );
+
+    req.user.profilePic = {
+        url: "",
+        publicId: ""
+    };
+
+    await req.user.save();
+
+    res.status(200).json({
+        success: true,
+        message: "Profile picture deleted"
+    });
+
+});
+
+const updateProfile = asyncHandler(async (req, res) => {
+
+    const { fullName, bio } = req.body;
+
+    if (fullName) {
+        req.user.fullName = fullName;
+    }
+
+    if (bio !== undefined) {
+        req.user.bio = bio;
+    }
+
+    await req.user.save();
+
+    const updatedUser = await User.findById(req.user._id).select("-password");
+
+    res.status(200).json({
+        success: true,
+        user: updatedUser
+    });
+
+});
+
+
+const getMyProfile = asyncHandler(async (req, res) => {
+
+    const user = await User.findById(req.user._id).select("-password");
+
+    res.status(200).json({
+        success: true,
+        user
+    });
+
+});
+
 module.exports = {
     searchUsers,
-    uploadProfilePicture
+    uploadProfilePicture,
+    deleteProfilePicture,
+    updateProfile,
+    getMyProfile
 };

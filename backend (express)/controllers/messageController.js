@@ -9,7 +9,7 @@ const FriendRequest = require("../models/friendRequestModel");
 const Hustle = require("../models/hustleModel");
 const User = require("../models/userModel");
 const { getIO } = require("../socket/socketService");
-const { getSocketId } = require("../socket/socketManager"); 
+const { getSocketId } = require("../socket/socketManager");
 
 const startConversation = asyncHandler(async (req, res) => {
 
@@ -250,8 +250,18 @@ const sendMessage = asyncHandler(async (req, res) => {
         "username fullName profilePic"
     );
 
+    const io = getIO();
+
+    io.to(conversationId).emit(
+        "new-message",
+        {
+            conversationId,
+            message
+        }
+    );
+
     await createNotification({
-        receiver:receiver.user._id || receiver.user,
+        receiver: receiver.user._id || receiver.user,
         sender: req.user._id,
         type: "message",
         title: "New Message",
@@ -259,28 +269,6 @@ const sendMessage = asyncHandler(async (req, res) => {
         referenceId: conversation._id,
         referenceType: "Conversation"
     });
-
-    const receiver = conversation.participants.find(
-        participant =>
-            participant.user.toString() !== req.user._id.toString()
-    );
-
-    const receiverSocketId =
-        getSocketId(receiver.user.toString());
-
-    if (receiverSocketId) {
-
-        const io = getIO();
-
-        io.to(receiverSocketId).emit(
-            "new-message",
-            {
-                conversationId,
-                message
-            }
-        );
-
-    }
 
     res.status(201).json({
         success: true,

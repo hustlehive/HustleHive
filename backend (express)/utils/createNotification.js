@@ -1,7 +1,7 @@
 const Notification = require("../models/notificationModel");
+const { emitNotification } = require("../socket/socketEvents");
 
 const createNotification = async ({
-
     receiver,
     sender = null,
     type,
@@ -9,11 +9,9 @@ const createNotification = async ({
     body,
     referenceId = null,
     referenceType = null
-
 }) => {
 
-    return await Notification.create({
-
+    const notification = await Notification.create({
         receiver,
         sender,
         type,
@@ -21,9 +19,27 @@ const createNotification = async ({
         body,
         referenceId,
         referenceType
-
     });
 
+    await notification.populate(
+        "sender",
+        "username fullName profilePic"
+    );
+
+    const unreadCount = await Notification.countDocuments({
+        receiver,
+        isRead: false
+    });
+
+    emitNotification(
+        receiver,
+        {
+            notification,
+            unreadCount
+        }
+    );
+
+    return notification;
 };
 
 module.exports = createNotification;
