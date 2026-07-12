@@ -200,10 +200,124 @@ const getMyProfile = asyncHandler(async (req, res) => {
 
 });
 
+const getUserProfile = asyncHandler(async (req, res) => {
+
+    const user = await User.findById(req.params.userId).select("-password");
+
+    if (!user) {
+        res.status(404);
+        throw new Error("User not found");
+    }
+
+    const response = {
+        _id: user._id,
+        fullName: user.fullName,
+        username: user.username,
+        college: user.college,
+        bio: user.bio,
+        profilePic: user.profilePic
+    };
+
+    res.status(200).json({
+        success: true,
+        user: response
+    });
+
+});
+
+const getUserHustles = asyncHandler(async (req, res) => {
+
+    const user = await User.findById(req.params.userId);
+
+    if (!user) {
+        res.status(404);
+        throw new Error("User not found");
+    }
+
+    const hustles = await Hustle.find({
+        createdBy: user._id
+    }).sort({ createdAt: -1 });
+
+    res.status(200).json({
+        success: true,
+        count: hustles.length,
+        hustles
+    });
+
+});
+
+const getUserFriends = asyncHandler(async (req, res) => {
+
+    const targetUser = req.params.userId;
+
+    const exists = await User.findById(targetUser);
+
+    if (!exists) {
+        res.status(404);
+        throw new Error("User not found");
+    }
+
+    if (req.user._id.toString() !== targetUser) {
+
+        const friendship = await FriendRequest.findOne({
+            status: "accepted",
+            $or: [
+                {
+                    sender: req.user._id,
+                    receiver: targetUser
+                },
+                {
+                    sender: targetUser,
+                    receiver: req.user._id
+                }
+            ]
+        });
+
+        if (!friendship) {
+            res.status(403);
+            throw new Error("Not authorized");
+        }
+
+    }
+
+    const friendships = await FriendRequest.find({
+        status: "accepted",
+        $or: [
+            { sender: targetUser },
+            { receiver: targetUser }
+        ]
+    })
+        .populate("sender", "username fullName college profilePic")
+        .populate("receiver", "username fullName college profilePic");
+
+    const friends = friendships.map(friendship => {
+
+        if (friendship.sender._id.toString() === targetUser) {
+
+            return friendship.receiver;
+
+        }
+
+        return friendship.sender;
+
+    });
+
+    res.status(200).json({
+        success: true,
+        count: friends.length,
+        friends
+    });
+
+});
+
+
 module.exports = {
     searchUsers,
     uploadProfilePicture,
     deleteProfilePicture,
     updateProfile,
-    getMyProfile
+    getMyProfile,
+    getUserProfile,
+    getUserHustles,
+    getUserFriends
 };

@@ -263,7 +263,8 @@ const loginUser = asyncHandler(async (req, res) => {
             username: user.username,
             email: user.email,
             college: user.college,
-            role: user.role
+            role: user.role,
+            profilePic: user.profilePic
         }
     });
 });

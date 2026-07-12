@@ -10,7 +10,10 @@ const {
     uploadProfilePicture,
     deleteProfilePicture,
     updateProfile,
-    getMyProfile
+    getMyProfile,
+    getUserProfile,
+    getUserHustles,
+    getUserFriends
 } = require("../controllers/userController");
 
 
@@ -39,5 +42,20 @@ router.put("/profile-picture", protect, uploadProfileImage.single("image"), uplo
 router.delete("/profile-picture", protect, deleteProfilePicture);
 router.put("/profile", protect, updateProfile);
 router.get("/me", protect, getMyProfile);
+router.get(
+    "/:userId",
+    protect,
+    getUserProfile
+);
+router.get(
+    "/:userId/hustles",
+    protect,
+    getUserHustles
+);
+router.get(
+    "/:userId/friends",
+    protect,
+    getUserFriends
+);
 
 module.exports = router;
