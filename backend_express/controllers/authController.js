@@ -5,6 +5,7 @@ const asyncHandler = require("express-async-handler");
 const generateOTP = require("../utils/generateOTP");
 const sendEmail = require("../utils/sendEmail");
 const generateToken = require("../utils/generateToken");
+const cloudinary=require("../config/cloudinary");
 
 const getCollegeFromEmail = (email) => {
 
@@ -87,6 +88,7 @@ const registerUser = asyncHandler(async (req, res) => {
     };
 
     if (req.file) {
+        console.log(req.file);
         profilePic = {
             url: req.file.path,
             publicId: req.file.filename
@@ -105,9 +107,9 @@ const registerUser = asyncHandler(async (req, res) => {
     // Check Required Fields
     if (!fullName || !username || !email || !password || !otp) {
         if (profilePic.publicId) {
-            await cloudinary.uploader.destroy(
-                profilePic.publicId
-            );
+            console.log(profilePic);
+            const imageDeleteResult = await cloudinary.uploader.destroy(profilePic.publicId);
+            console.log(imageDeleteResult);
         }
 
         res.status(400);
@@ -120,9 +122,9 @@ const registerUser = asyncHandler(async (req, res) => {
 
     if (!college) {
         if (profilePic.publicId) {
-            await cloudinary.uploader.destroy(
-                profilePic.publicId
-            );
+            console.log(profilePic);
+            const imageDeleteResult = await cloudinary.uploader.destroy(profilePic.publicId);
+            console.log(imageDeleteResult);
         }
 
         res.status(400);
@@ -139,9 +141,9 @@ const registerUser = asyncHandler(async (req, res) => {
 
     if (existingUser) {
         if (profilePic.publicId) {
-            await cloudinary.uploader.destroy(
-                profilePic.publicId
-            );
+            console.log(profilePic);
+            const imageDeleteResult = await cloudinary.uploader.destroy(profilePic.publicId);
+            console.log(imageDeleteResult);
         }
 
         res.status(400);
@@ -153,9 +155,9 @@ const registerUser = asyncHandler(async (req, res) => {
 
     if (!otpRecord) {
         if (profilePic.publicId) {
-            await cloudinary.uploader.destroy(
-                profilePic.publicId
-            );
+            console.log(profilePic);
+            const imageDeleteResult = await cloudinary.uploader.destroy(profilePic.publicId);
+            console.log(imageDeleteResult);
         }
 
         res.status(400);
@@ -165,9 +167,9 @@ const registerUser = asyncHandler(async (req, res) => {
     // Check OTP Match
     if (otpRecord.otp !== otp) {
         if (profilePic.publicId) {
-            await cloudinary.uploader.destroy(
-                profilePic.publicId
-            );
+            console.log(profilePic);
+            const imageDeleteResult = await cloudinary.uploader.destroy(profilePic.publicId);
+            console.log(imageDeleteResult);
         }
 
         res.status(400);
@@ -177,9 +179,9 @@ const registerUser = asyncHandler(async (req, res) => {
     // Check OTP Expiry
     if (Date.now() > otpRecord.expiresAt) {
         if (profilePic.publicId) {
-            await cloudinary.uploader.destroy(
-                profilePic.publicId
-            );
+            console.log(profilePic);
+            const imageDeleteResult = await cloudinary.uploader.destroy(profilePic.publicId);
+            console.log(imageDeleteResult);
         }
 
         res.status(400);

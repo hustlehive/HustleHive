@@ -2,27 +2,9 @@ const asyncHandler = require("express-async-handler");
 const Hustle = require("../models/hustleModel");
 const HustleApplication = require("../models/hustleApplicationModel");
 const createNotification = require("../utils/createNotification");
+const cloudinary=require("../config/cloudinary");
 
 const createHustle = asyncHandler(async (req, res) => {
-
-    const {
-        title,
-        description,
-        reward,
-        deadline
-    } = req.body;
-
-
-    // Validate Fields
-    if (
-        !title ||
-        !description ||
-        !reward ||
-        !deadline
-    ) {
-        res.status(400);
-        throw new Error("Please provide all required fields");
-    }
 
     let photo = {
         url: "",
@@ -30,6 +12,7 @@ const createHustle = asyncHandler(async (req, res) => {
     };
 
     if (req.file) {
+        console.log(req.file);
         photo = {
             url: req.file.path,
             publicId: req.file.filename
@@ -37,22 +20,60 @@ const createHustle = asyncHandler(async (req, res) => {
 
     }
 
-    // Create Hustle
-    const hustle = await Hustle.create({
-        title,
-        description,
-        reward,
-        photo,
-        deadline,
-        photo,
-        college: req.user.college,
-        createdBy: req.user._id
-    });
+    try {
+        const {
+            title,
+            description,
+            reward,
+            deadline
+        } = req.body;
 
-    res.status(200).json({
-        success: true,
-        hustle
-    });
+
+        // Validate Fields
+        if (
+            !title ||
+            !description ||
+            !reward ||
+            !deadline
+        ) {
+            if (photo.publicId) {
+                console.log(photo);
+                const imageDeleteResult = await cloudinary.uploader.destroy(photo.publicId);
+                console.log(imageDeleteResult);
+            }
+
+            res.status(400);
+            throw new Error("Please provide all required fields");
+        }
+
+        // Create Hustle
+        const hustle = await Hustle.create({
+            title,
+            description,
+            reward,
+            photo,
+            deadline,
+            photo,
+            college: req.user.college,
+            createdBy: req.user._id
+        });
+
+        res.status(200).json({
+            success: true,
+            hustle
+        });
+    } catch (e) {
+        if (photo.publicId) {
+            console.log(photo);
+            const imageDeleteResult = await cloudinary.uploader.destroy(photo.publicId);
+            console.log(imageDeleteResult);
+
+            res.status(500);
+            throw new Error("Unexpected error occured, please ensure all fields are valid.");
+        }
+    }
+
+
 });
 
 
