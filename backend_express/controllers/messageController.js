@@ -260,6 +260,11 @@ const sendMessage = asyncHandler(async (req, res) => {
         }
     );
 
+    const receiver = conversation.participants.find(
+        participant =>
+            participant.user.toString() !== req.user._id.toString()
+    );
+
     await createNotification({
         receiver: receiver.user._id || receiver.user,
         sender: req.user._id,
