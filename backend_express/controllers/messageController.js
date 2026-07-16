@@ -459,6 +459,13 @@ const editMessage = asyncHandler(async (req, res) => {
         throw new Error("Not authorized");
     }
 
+    const fiveMinutes = 5 * 60 * 1000;
+
+    if (Date.now() - message.createdAt.getTime() > fiveMinutes) {
+        res.status(400);
+        throw new Error("Messages can only be edited within 5 minutes of being sent");
+    }
+
     message.content = content;
     message.isEdited = true;
     message.editedAt = new Date();
@@ -494,8 +501,15 @@ const deleteMessageForEveryone = asyncHandler(async (req, res) => {
         throw new Error("Not authorized");
     }
 
+    const twentyMinutes = 20 * 60 * 1000;
+
+    if (Date.now() - message.createdAt.getTime() > twentyMinutes) {
+        res.status(400);
+        throw new Error("Messages can only be deleted within 20 minutes of being sent");
+    }
+
     message.deletedForEveryone = true;
-    message.content = "This message was deleted.";
+    // message.content = "This message was deleted.";
 
     await message.save();
 
