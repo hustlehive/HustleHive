@@ -55,7 +55,7 @@ const sendFriendRequest = asyncHandler(async (req, res) => {
         sender: req.user._id,
         type: "friend_request",
         title: "New Friend Request",
-        body: `${req.user.fullName} sent you a friend request.`,
+        body: `sent you a friend request.`,
         referenceId: request._id,
         referenceType: "FriendRequest"
     });
@@ -122,7 +122,7 @@ const acceptFriendRequest = asyncHandler(async (req, res) => {
         sender: req.user._id,
         type: "friend_accept",
         title: "Friend Request Accepted",
-        body: `${req.user.fullName} accepted your friend request.`,
+        body: `accepted your friend request.`,
         referenceId: request._id,
         referenceType: "FriendRequest"
     });

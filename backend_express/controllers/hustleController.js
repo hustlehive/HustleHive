@@ -301,7 +301,7 @@ const applyToHustle = asyncHandler(async (req, res) => {
         sender: req.user._id,
         type: "hustle_application",
         title: "New Application",
-        body: `${req.user.fullName} applied to your hustle.`,
+        body: `applied to your hustle.`,
         referenceId: application._id,
         referenceType: "Application"
     });

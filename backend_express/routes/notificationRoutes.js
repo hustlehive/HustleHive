@@ -12,10 +12,13 @@ const {
 } = require("../controllers/notificationController");
 
 router.get("/", protect, getNotifications);
-router.put("/:notificationId", protect, markNotificationRead);
 
 router.put("/read-all", protect, markAllNotificationsRead);
-router.delete("/:notificationId", protect, deleteNotification);
+
+router.put("/:notificationId", protect, markNotificationRead);
+
 router.delete("/delete-all", protect, deleteAllNotifications);
+
+router.delete("/:notificationId", protect, deleteNotification);
 
 module.exports = router;

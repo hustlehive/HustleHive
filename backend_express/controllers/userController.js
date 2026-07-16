@@ -2,6 +2,7 @@ const asyncHandler = require("express-async-handler");
 const User = require("../models/userModel");
 const FriendRequest = require("../models/friendRequestModel");
 const cloudinary = require("../config/cloudinary");
+const Hustle = require("../models/hustleModel");
 
 const searchUsers = asyncHandler(async (req, res) => {
 
@@ -13,15 +14,31 @@ const searchUsers = asyncHandler(async (req, res) => {
     }
 
     const users = await User.find({
-        username: {
-            $regex: username,
-            $options: "i"
-        },
-        email: { $ne: req.user.email }
+        $and: [
+            {
+                $or: [
+                    {
+                        username: {
+                            $regex: username,
+                            $options: "i"
+                        }
+                    },
+                    {
+                        fullName: {
+                            $regex: username,
+                            $options: "i"
+                        }
+                    }
+                ]
+            },
+            {
+                email: {
+                    $ne: req.user.email
+                }
+            }
+        ]
     })
-        .select(
-            "username fullName college profilePic bio"
-        );
+        .select("username fullName college profilePic bio");
 
     const userIds = users.map(user => user._id);
 
