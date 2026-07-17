@@ -230,6 +230,7 @@ const getUserProfile = asyncHandler(async (req, res) => {
         _id: user._id,
         fullName: user.fullName,
         username: user.username,
+        email: user.email,
         college: user.college,
         bio: user.bio,
         profilePic: user.profilePic

@@ -43,7 +43,13 @@ const messageSchema = new mongoose.Schema(
         deletedForEveryone: {
             type: Boolean,
             default: false
-        }
+        },
+        hiddenFor: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "User"
+            }
+        ]
     },
     {
         timestamps: true

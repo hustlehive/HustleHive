@@ -10,7 +10,9 @@ const {
     getMessages,
     markConversationAsRead,
     editMessage,
-    deleteMessageForEveryone
+    deleteMessageForEveryone,
+    deleteMessageForMe,
+    deleteConversationForMe
 } = require("../controllers/messageController");
 
 router.post("/start", protect, startConversation);
@@ -24,5 +26,9 @@ router.put("/read/:conversationId", protect, markConversationAsRead);
 router.put("/edit/:messageId", protect, editMessage);
 
 router.delete("/delete/:messageId", protect, deleteMessageForEveryone);
+
+router.delete("/conversation/:conversationId/me", protect, deleteConversationForMe);
+
+router.delete("/me/:messageId", protect, deleteMessageForMe);
 
 module.exports = router;

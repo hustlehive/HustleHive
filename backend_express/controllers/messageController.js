@@ -243,6 +243,13 @@ const sendMessage = asyncHandler(async (req, res) => {
         0
     );
 
+    conversation.hiddenFor = [];
+
+    conversation.unreadCounts.set(
+        req.user._id.toString(),
+        0
+    );
+
     await conversation.save();
 
     await message.populate(
@@ -288,7 +295,10 @@ const getInbox = asyncHandler(async (req, res) => {
     const { type } = req.query;
 
     const query = {
-        "participants.user": req.user._id
+        "participants.user": req.user._id,
+        hiddenFor: {
+            $ne: req.user._id
+        }
     };
 
     if (type) {
@@ -373,7 +383,10 @@ const getMessages = asyncHandler(async (req, res) => {
     }
 
     const messages = await Message.find({
-        conversation: conversationId
+        conversation: conversationId,
+        hiddenFor: {
+            $ne: req.user._id
+        }
     })
         .populate(
             "sender",
@@ -526,6 +539,105 @@ const deleteMessageForEveryone = asyncHandler(async (req, res) => {
 });
 
 
+const deleteMessageForMe = asyncHandler(async (req, res) => {
+
+    const { messageId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(messageId)) {
+        res.status(400);
+        throw new Error("Invalid message id");
+    }
+
+    const message = await Message.findById(messageId);
+
+    if (!message) {
+        res.status(404);
+        throw new Error("Message not found");
+    }
+
+    const conversation = await Conversation.findById(message.conversation);
+
+    if (!conversation) {
+        res.status(404);
+        throw new Error("Conversation not found");
+    }
+
+    const isParticipant = conversation.participants.some(
+        participant =>
+            participant.user.toString() === req.user._id.toString()
+    );
+
+    if (!isParticipant) {
+        res.status(403);
+        throw new Error("Not authorized");
+    }
+
+    if (!message.hiddenFor.includes(req.user._id)) {
+        message.hiddenFor.push(req.user._id);
+    }
+
+    await message.save();
+
+    res.status(200).json({
+        success: true,
+        message: "Message deleted for you"
+    });
+
+});
+
+
+
+const deleteConversationForMe = asyncHandler(async (req, res) => {
+
+    const { conversationId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(conversationId)) {
+        res.status(400);
+        throw new Error("Invalid conversation id");
+    }
+
+    const conversation = await Conversation.findById(conversationId);
+
+    if (!conversation) {
+        res.status(404);
+        throw new Error("Conversation not found");
+    }
+
+    const isParticipant = conversation.participants.some(
+        participant =>
+            participant.user.toString() === req.user._id.toString()
+    );
+
+    if (!isParticipant) {
+        res.status(403);
+        throw new Error("Not authorized");
+    }
+
+    if (!conversation.hiddenFor.includes(req.user._id)) {
+        conversation.hiddenFor.push(req.user._id);
+    }
+
+    await Message.updateMany(
+        {
+            conversation: conversationId
+        },
+        {
+            $addToSet: {
+                hiddenFor: req.user._id
+            }
+        }
+    );
+
+    await conversation.save();
+
+    res.status(200).json({
+        success: true,
+        message: "Conversation deleted for you"
+    });
+
+});
+
+
 module.exports = {
     startConversation,
     sendMessage,
@@ -533,5 +645,7 @@ module.exports = {
     getMessages,
     markConversationAsRead,
     editMessage,
-    deleteMessageForEveryone
+    deleteMessageForEveryone,
+    deleteMessageForMe,
+    deleteConversationForMe
 };
