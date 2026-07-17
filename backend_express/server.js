@@ -46,8 +46,8 @@ setIO(io);
 
 
 const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 300,
+    windowMs: 5 * 60 * 1000,
+    max: 600,
     message: {
         success: false,
         message: "Too many requests, please try again later."
