@@ -11,7 +11,10 @@ const useAuth = () => {
   const isAuthenticated = useSelector(selectIsAuthenticated)
   const isAdmin = user?.role === 'admin'
 
-  return { user, token, isAuthenticated, isAdmin }
+  // Resolved ID — works whether backend returned id or _id
+  const userId = user?._id?.toString() || user?.id?.toString() || null
+
+  return { user, token, isAuthenticated, isAdmin, userId }
 }
 
 export default useAuth

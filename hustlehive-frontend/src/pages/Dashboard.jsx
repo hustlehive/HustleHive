@@ -16,6 +16,13 @@ import Pagination from '@/components/common/Pagination'
 import { ROUTES } from '@/constants/routes'
 import { cn } from '@/utils/cn'
 import useDebounce from '@/hooks/useDebounce'
+import useAuth from '@/hooks/useAuth'
+
+const extractId = (val) => {
+  if (!val) return null
+  if (typeof val === 'string') return val
+  return (val._id || val.id)?.toString() || null
+}
 
 const SORT_OPTIONS = [
   { label: 'Newest', value: '' },
@@ -25,12 +32,13 @@ const SORT_OPTIONS = [
   { label: 'Deadline', value: 'deadline' },
 ]
 
-const STATUS_OPTIONS = ['open', 'assigned', 'completed']
+const STATUS_OPTIONS = ['active', 'assigned', 'completed', 'cancelled']
 const COLLEGE_OPTIONS = ['NSUT', 'DTU', 'IGDTUW']
 
 const Dashboard = () => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
+  const { user } = useAuth()
 
   const [search, setSearch] = useState(searchParams.get('q') || '')
   const [page, setPage] = useState(1)
@@ -59,7 +67,13 @@ const Dashboard = () => {
 
   const hustles = data?.hustles || []
   const totalPages = data?.totalPages || 1
-  const total = data?.total || 0
+
+  // Count only hustles not created by current user for display
+  const currentUserId = extractId(user)
+  const visibleHustles = hustles.filter((h) => {
+    const creatorId = extractId(h.createdBy)
+    return currentUserId && creatorId ? currentUserId !== creatorId : true
+  })
 
   const hasActiveFilters = status || college || minReward || maxReward
 
@@ -81,6 +95,15 @@ const Dashboard = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
+  // Subtitle text
+  const getSubtitle = () => {
+    if (isLoading) return 'Loading hustles...'
+    if (visibleHustles.length === 0 && hustles.length > 0) {
+      return 'No hustles from others to show'
+    }
+    return `${visibleHustles.length} hustle${visibleHustles.length !== 1 ? 's' : ''} available`
+  }
+
   return (
     <div className="max-w-7xl mx-auto">
       {/* Header */}
@@ -88,7 +111,7 @@ const Dashboard = () => {
         <div>
           <h1 className="text-xl font-bold text-foreground">Dashboard</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            {isLoading ? 'Loading hustles...' : `${total} hustle${total !== 1 ? 's' : ''} available`}
+            {getSubtitle()}
           </p>
         </div>
       </div>
@@ -119,7 +142,7 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* Sort dropdown */}
+        {/* Sort */}
         <div className="relative">
           <button
             onClick={() => setSortOpen((p) => !p)}
@@ -164,7 +187,7 @@ const Dashboard = () => {
           </AnimatePresence>
         </div>
 
-        {/* Filter toggle */}
+        {/* Filters toggle */}
         <button
           onClick={() => setShowFilters((p) => !p)}
           className={cn(
@@ -295,13 +318,15 @@ const Dashboard = () => {
             Try Again
           </button>
         </div>
-      ) : hustles.length === 0 ? (
+      ) : visibleHustles.length === 0 ? (
         <EmptyState
           icon={Search}
           title="No hustles found"
           description={
             debouncedSearch || hasActiveFilters
               ? 'Try adjusting your search or filters.'
+              : hustles.length > 0
+              ? 'All available hustles were posted by you. Create more or check back later.'
               : 'Be the first to post a hustle!'
           }
           action={

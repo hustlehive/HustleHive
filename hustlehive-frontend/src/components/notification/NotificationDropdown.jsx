@@ -1,11 +1,15 @@
 import { useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Bell, Check, Trash2, ArrowRight } from 'lucide-react'
+import { Bell, Check, Trash2, ArrowRight, Loader2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { queryKeys } from '@/constants/queryKeys'
-import { getNotifications, markAllNotificationsRead, deleteAllNotifications } from '@/api/notifications.api'
+import {
+  getNotifications,
+  markAllNotificationsRead,
+  deleteAllNotifications,
+} from '@/api/notifications.api'
 import NotificationItem from './NotificationItem'
 import NotificationSkeleton from '@/components/skeletons/NotificationSkeleton'
 import { ROUTES } from '@/constants/routes'
@@ -26,20 +30,22 @@ const NotificationDropdown = ({ open, onClose }) => {
   const notifications = data?.notifications || []
   const unreadCount = notifications.filter((n) => !n.isRead).length
 
-  const { mutate: markAllRead } = useMutation({
+  const { mutate: markAllRead, isPending: isMarkingRead } = useMutation({
     mutationFn: markAllNotificationsRead,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.notifications() })
       toast.success('All notifications marked as read')
     },
+    onError: (err) => toast.error(err.message),
   })
 
-  const { mutate: deleteAll } = useMutation({
+  const { mutate: deleteAll, isPending: isDeletingAll } = useMutation({
     mutationFn: deleteAllNotifications,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.notifications() })
       toast.success('All notifications cleared')
     },
+    onError: (err) => toast.error(err.message),
   })
 
   // Close on outside click
@@ -71,30 +77,56 @@ const NotificationDropdown = ({ open, onClose }) => {
           <div className="flex items-center justify-between px-4 py-3 border-b border-border">
             <div className="flex items-center gap-2">
               <Bell className="w-4 h-4 text-foreground" />
-              <span className="text-sm font-semibold text-foreground">Notifications</span>
+              <span className="text-sm font-semibold text-foreground">
+                Notifications
+              </span>
               {unreadCount > 0 && (
                 <span className="text-xs bg-primary text-white rounded-full px-1.5 py-0.5 font-medium">
                   {unreadCount}
                 </span>
               )}
             </div>
+
             <div className="flex items-center gap-1">
+              {/* Mark all read */}
               {unreadCount > 0 && (
                 <button
                   onClick={() => markAllRead()}
+                  disabled={isMarkingRead || isDeletingAll}
                   title="Mark all read"
-                  className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                  className={cn(
+                    'p-1.5 rounded-md transition-colors',
+                    isMarkingRead
+                      ? 'text-primary cursor-not-allowed'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                  )}
                 >
-                  <Check className="w-3.5 h-3.5" />
+                  {isMarkingRead ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Check className="w-3.5 h-3.5" />
+                  )}
                 </button>
               )}
+
+              {/* Delete all */}
               {notifications.length > 0 && (
                 <button
                   onClick={() => deleteAll()}
+                  disabled={isDeletingAll || isMarkingRead}
                   title="Clear all"
-                  className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                  className={cn(
+                    'p-1.5 rounded-md transition-colors',
+                    isDeletingAll
+                      ? 'text-destructive cursor-not-allowed'
+                      : 'text-muted-foreground hover:text-destructive hover:bg-destructive/10'
+                  )}
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
+                  {isDeletingAll ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-3.5 h-3.5" />
+                  )}
                 </button>
               )}
             </div>
@@ -104,7 +136,9 @@ const NotificationDropdown = ({ open, onClose }) => {
           <div className="max-h-[340px] overflow-y-auto">
             {isLoading ? (
               <div className="divide-y divide-border">
-                {[...Array(3)].map((_, i) => <NotificationSkeleton key={i} />)}
+                {[...Array(3)].map((_, i) => (
+                  <NotificationSkeleton key={i} />
+                ))}
               </div>
             ) : notifications.length === 0 ? (
               <div className="py-10 text-center">

@@ -3,10 +3,20 @@ import { createSlice } from '@reduxjs/toolkit'
 const TOKEN_KEY = 'hh_token'
 const USER_KEY = 'hh_user'
 
+// Normalize user object — backend returns "id", we standardize to "_id"
+const normalizeUser = (user) => {
+  if (!user) return null
+  return {
+    ...user,
+    _id: user._id || user.id,
+  }
+}
+
 const loadFromStorage = () => {
   try {
     const token = localStorage.getItem(TOKEN_KEY)
-    const user = JSON.parse(localStorage.getItem(USER_KEY))
+    const raw = JSON.parse(localStorage.getItem(USER_KEY))
+    const user = normalizeUser(raw)
     if (token && user) return { user, token, isAuthenticated: true }
   } catch {
     // ignore parse errors
@@ -21,7 +31,8 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     setCredentials: (state, action) => {
-      const { user, token } = action.payload
+      const { user: rawUser, token } = action.payload
+      const user = normalizeUser(rawUser)
       state.user = user
       state.token = token
       state.isAuthenticated = true
@@ -37,7 +48,7 @@ const authSlice = createSlice({
     },
     updateUser: (state, action) => {
       if (state.user) {
-        state.user = { ...state.user, ...action.payload }
+        state.user = normalizeUser({ ...state.user, ...action.payload })
         localStorage.setItem(USER_KEY, JSON.stringify(state.user))
       }
     },

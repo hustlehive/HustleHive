@@ -19,7 +19,12 @@ import {
 import { useState } from 'react'
 import { cn } from '@/utils/cn'
 import { ROUTES } from '@/constants/routes'
-import { toggleSidebar, selectSidebarCollapsed, selectUnreadNotifications, selectUnreadMessages } from '@/app/slices/uiSlice'
+import {
+  toggleSidebar,
+  selectSidebarCollapsed,
+  selectUnreadNotifications,
+  selectUnreadMessages,
+} from '@/app/slices/uiSlice'
 import { logout } from '@/app/slices/authSlice'
 import { disconnectSocket } from '@/services/socket'
 import useAuth from '@/hooks/useAuth'
@@ -106,7 +111,7 @@ const Sidebar = ({ mobileOpen, onMobileClose }) => {
   const collapsed = useSelector(selectSidebarCollapsed)
   const unreadNotifications = useSelector(selectUnreadNotifications)
   const unreadMessages = useSelector(selectUnreadMessages)
-  const { user, isAdmin } = useAuth()
+  const { user, isAdmin, isAuthenticated } = useAuth()
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false)
 
   const handleLogoutConfirm = () => {
@@ -116,8 +121,13 @@ const Sidebar = ({ mobileOpen, onMobileClose }) => {
     navigate(ROUTES.LOGIN, { replace: true })
   }
 
+  // Redirect to dashboard if logged in, else homepage
   const handleLogoClick = () => {
-    navigate(ROUTES.DASHBOARD)
+    if (isAuthenticated) {
+      navigate(ROUTES.DASHBOARD)
+    } else {
+      navigate(ROUTES.LANDING)
+    }
   }
 
   const sidebarContent = (
@@ -131,7 +141,7 @@ const Sidebar = ({ mobileOpen, onMobileClose }) => {
             'hover:bg-accent transition-colors',
             collapsed ? 'justify-center' : 'gap-2.5 px-4'
           )}
-          aria-label="Go to dashboard"
+          aria-label={isAuthenticated ? 'Go to dashboard' : 'Go to homepage'}
         >
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
             <Zap className="w-4 h-4 text-white" />
@@ -254,7 +264,6 @@ const Sidebar = ({ mobileOpen, onMobileClose }) => {
         </button>
       </div>
 
-      {/* Logout dialog — inside sidebar so it works for both desktop and mobile */}
       <ConfirmDialog
         open={logoutDialogOpen}
         onClose={() => setLogoutDialogOpen(false)}
@@ -275,7 +284,6 @@ const Sidebar = ({ mobileOpen, onMobileClose }) => {
         animate={{ width: collapsed ? 68 : 260 }}
         transition={{ duration: 0.25, ease: 'easeInOut' }}
         className="hidden lg:block fixed left-0 top-0 h-screen bg-card border-r border-border z-40 overflow-visible"
-        style={{ position: 'fixed' }}
       >
         <div className="relative h-full">
           {sidebarContent}

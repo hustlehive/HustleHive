@@ -36,6 +36,7 @@ export const useCreateHustle = () => {
     mutationFn: createHustle,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['hustles'] })
+      queryClient.invalidateQueries({ queryKey: ['users'] })
       toast.success('Hustle created successfully!')
     },
     onError: (err) => toast.error(err.message),
@@ -61,6 +62,7 @@ export const useDeleteHustle = () => {
     mutationFn: deleteHustle,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['hustles'] })
+      queryClient.invalidateQueries({ queryKey: ['users'] })
       toast.success('Hustle deleted')
     },
     onError: (err) => toast.error(err.message),
@@ -72,6 +74,7 @@ export const useApplyToHustle = () => {
   return useMutation({
     mutationFn: applyToHustle,
     onSuccess: () => {
+      // Invalidate my-applications so alreadyApplied check updates instantly
       queryClient.invalidateQueries({ queryKey: queryKeys.myApplications() })
       toast.success('Applied successfully!')
     },
@@ -91,8 +94,11 @@ export const useAcceptApplication = () => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: acceptApplication,
-    onSuccess: () => {
+    onSuccess: (_, applicationId) => {
+      // Invalidate all hustle and applicant queries
       queryClient.invalidateQueries({ queryKey: ['hustles'] })
+      queryClient.invalidateQueries({ queryKey: ['hustle'] })
+      queryClient.invalidateQueries({ queryKey: ['applications'] })
       toast.success('Applicant accepted!')
     },
     onError: (err) => toast.error(err.message),
@@ -104,6 +110,7 @@ export const useRejectApplication = () => {
   return useMutation({
     mutationFn: rejectApplication,
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['applications'] })
       toast.success('Application rejected')
     },
     onError: (err) => toast.error(err.message),

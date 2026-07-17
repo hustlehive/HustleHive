@@ -12,7 +12,14 @@ import AppAvatar from '@/components/common/AppAvatar'
 import useAuth from '@/hooks/useAuth'
 import { useApplyToHustle } from '@/features/hustles/useHustles'
 
-const HustleCard = ({ hustle }) => {
+// Safely extract id — handles populated object, plain string ObjectId, or object with id/_id
+const extractId = (val) => {
+  if (!val) return null
+  if (typeof val === 'string') return val
+  return (val._id || val.id)?.toString() || null
+}
+
+const HustleCard = ({ hustle, showIfOwner = false }) => {
   const navigate = useNavigate()
   const { user } = useAuth()
   const { mutate: apply, isPending: isApplying } = useApplyToHustle()
@@ -30,9 +37,18 @@ const HustleCard = ({ hustle }) => {
     createdAt,
   } = hustle
 
-  const isOwner = user?._id === createdBy?._id
+  const currentUserId = extractId(user)
+  const creatorId = extractId(createdBy)
+  const isOwner = !!(currentUserId && creatorId && currentUserId === creatorId)
+
+  if (isOwner && !showIfOwner) return null
+
   const deadlinePassed = isDeadlinePassed(deadline)
-  const canApply = !isOwner && status === 'open' && !deadlinePassed
+  const canApply = !isOwner && status === 'active' && !deadlinePassed
+
+  // createdBy may be unpopulated (just an id string) — handle gracefully
+  const creatorName = typeof createdBy === 'object' ? createdBy?.fullName : null
+  const creatorPic = typeof createdBy === 'object' ? createdBy?.profilePic?.url : null
 
   const handleCardClick = () => navigate(ROUTES.HUSTLE_DETAILS(_id))
 
@@ -69,23 +85,19 @@ const HustleCard = ({ hustle }) => {
 
       {/* Content */}
       <div className="p-4 flex flex-col flex-1">
-        {/* College */}
         <div className="flex items-center gap-1 mb-2">
           <MapPin className="w-3 h-3 text-muted-foreground shrink-0" />
           <span className="text-xs text-muted-foreground truncate">{college}</span>
         </div>
 
-        {/* Title */}
         <h3 className="text-sm font-semibold text-foreground leading-snug mb-2 line-clamp-2">
           {title}
         </h3>
 
-        {/* Description */}
         <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2 mb-3">
           {description}
         </p>
 
-        {/* Reward & Deadline */}
         <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
           <div className="flex items-center gap-1">
             <DollarSign className="w-3.5 h-3.5 text-emerald-500" />
@@ -101,18 +113,19 @@ const HustleCard = ({ hustle }) => {
           </div>
         </div>
 
-        {/* Footer */}
         <div className="mt-auto flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
             <AppAvatar
-              src={createdBy?.profilePic?.url}
-              name={createdBy?.fullName}
+              src={creatorPic}
+              name={creatorName}
               size="xs"
             />
             <div className="min-w-0">
-              <p className="text-xs text-muted-foreground truncate">
-                {createdBy?.fullName}
-              </p>
+              {creatorName && (
+                <p className="text-xs text-muted-foreground truncate">
+                  {creatorName}
+                </p>
+              )}
               <div className="flex items-center gap-1">
                 <Clock className="w-2.5 h-2.5 text-muted-foreground" />
                 <span className="text-[10px] text-muted-foreground">
@@ -129,20 +142,15 @@ const HustleCard = ({ hustle }) => {
               className={cn(
                 'shrink-0 px-3 py-1.5 text-xs font-medium rounded-md transition-colors',
                 'bg-primary text-white hover:bg-primary/90',
-                'disabled:opacity-60 disabled:cursor-not-allowed',
-                'flex items-center gap-1'
+                'disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-1'
               )}
             >
               {isApplying ? (
                 <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : 'Apply'}
+              ) : ( 
+                'Apply'
+              )}
             </button>
-          )}
-
-          {isOwner && (
-            <span className="shrink-0 text-xs text-primary font-medium">
-              Your Hustle
-            </span>
           )}
         </div>
       </div>

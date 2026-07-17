@@ -4,7 +4,12 @@ import { SOCKET_URL } from '@/constants/config'
 let socket = null
 
 export const initSocket = (token) => {
-  if (socket?.connected) return socket
+  if (socket?.connected) {
+    console.log('[Socket] Already connected, reusing:', socket.id)
+    return socket
+  }
+
+  console.log('[Socket] Initializing with SOCKET_URL:', SOCKET_URL)
 
   socket = io(SOCKET_URL, {
     auth: { token },
@@ -14,17 +19,35 @@ export const initSocket = (token) => {
     timeout: 10000,
   })
 
-  socket.on('connect', () => {
-    console.log('[Socket] Connected:', socket.id)
+  socket.once("connect", () => {
+
+    console.log(
+      "[Socket] Connected:",
+      socket.id
+    )
+
   })
 
   socket.on('disconnect', (reason) => {
-    console.log('[Socket] Disconnected:', reason)
+    console.log('[Socket] ❌ Disconnected. Reason:', reason)
   })
 
   socket.on('connect_error', (err) => {
-    console.error('[Socket] Connection error:', err.message)
+    console.error('[Socket] ❌ Connection error:', err.message)
   })
+
+  if (import.meta.env.DEV) {
+
+    socket.onAny((event, ...args) => {
+
+      console.log(
+        `[Socket] ${event}`,
+        args
+      )
+
+    })
+
+  }
 
   return socket
 }
@@ -41,13 +64,16 @@ export const disconnectSocket = () => {
 }
 
 export const emitRegister = (userId) => {
+  console.log('[Socket] Emitting register for userId:', userId)
   socket?.emit('register', userId)
 }
 
 export const joinConversation = (conversationId) => {
+  console.log('[Socket] Joining conversation room:', conversationId)
   socket?.emit('join-conversation', conversationId)
 }
 
 export const leaveConversation = (conversationId) => {
+  console.log('[Socket] Leaving conversation room:', conversationId)
   socket?.emit('leave-conversation', conversationId)
 }
