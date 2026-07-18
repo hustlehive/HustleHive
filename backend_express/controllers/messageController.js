@@ -394,10 +394,22 @@ const getMessages = asyncHandler(async (req, res) => {
         )
         .sort({ createdAt: 1 });
 
+    const formattedMessages = messages.map(message => {
+
+        const msg = message.toObject();
+
+        if (msg.deletedForEveryone) {
+            msg.content = "This message was deleted.";
+        }
+
+        return msg;
+
+    });
+
     res.status(200).json({
         success: true,
-        count: messages.length,
-        messages
+        count: formattedMessages.length,
+        formattedMessages
     });
 
 });
