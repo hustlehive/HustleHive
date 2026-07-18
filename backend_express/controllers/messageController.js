@@ -272,6 +272,19 @@ const sendMessage = asyncHandler(async (req, res) => {
             participant.user.toString() !== req.user._id.toString()
     );
 
+    io.to(receiver.user.toString()).emit(
+        "message-notification",
+        {
+            conversationId,
+            sender: {
+                _id: req.user._id,
+                fullName: req.user.fullName,
+                username: req.user.username
+            },
+            message
+        }
+    );
+
     // await createNotification({
     //     receiver: receiver.user._id || receiver.user,
     //     sender: req.user._id,
