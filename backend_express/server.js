@@ -39,7 +39,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
     cors: {
-        origin: "http://localhost:3000"
+        origin: "https://hustlehive.vercel.app"
     }
 });
 setIO(io);
@@ -66,7 +66,7 @@ app.use(hpp());
 app.use(limiter);
 app.use(cors({
     origin: [
-        "http://localhost:3000"
+        "https://hustlehive.vercel.app"
     ],
     credentials: true
 }));
