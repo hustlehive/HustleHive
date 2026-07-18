@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { MoreHorizontal, Edit2, Trash2, Check, X } from 'lucide-react'
+import { MoreHorizontal, Edit2, Trash2, Check, X, EyeOff } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import ConfirmDialog from '@/components/common/ConfirmDialog'
 
@@ -22,16 +22,23 @@ const formatMessageTime = (dateString) => {
   })
 }
 
-const MessageBubble = ({ message, isMine, onEdit, onDelete }) => {
+const MessageBubble = ({ message, isMine, onEdit, onDelete, onDeleteForMe }) => {
   const [menuOpen, setMenuOpen] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editContent, setEditContent] = useState(message.content)
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [deleteEveryoneOpen, setDeleteEveryoneOpen] = useState(false)
+  const [deleteMeOpen, setDeleteMeOpen] = useState(false)
 
   const isDeleted = message.deletedForEveryone
+
+  // Edit: own messages, within 5 mins, not deleted
   const canEdit = isMine && !isDeleted && isWithinMinutes(message.createdAt, 5)
-  const canDelete = isMine && !isDeleted && isWithinMinutes(message.createdAt, 20)
-  const showMenu = isMine && !isDeleted && (canEdit || canDelete)
+  // Delete for everyone: own messages, within 20 mins, not deleted
+  const canDeleteEveryone = isMine && !isDeleted && isWithinMinutes(message.createdAt, 20)
+  // Delete for me: always available if not already deleted
+  const canDeleteForMe = !isDeleted
+
+  const showMenu = !isDeleted && (canEdit || canDeleteEveryone || canDeleteForMe)
 
   const handleEditSubmit = (e) => {
     e.preventDefault()
@@ -48,11 +55,6 @@ const MessageBubble = ({ message, isMine, onEdit, onDelete }) => {
   const handleEditCancel = () => {
     setIsEditing(false)
     setEditContent(message.content)
-  }
-
-  const handleDeleteConfirm = () => {
-    onDelete(message._id)
-    setDeleteConfirmOpen(false)
   }
 
   const timeLabel = formatMessageTime(message.createdAt)
@@ -91,9 +93,10 @@ const MessageBubble = ({ message, isMine, onEdit, onDelete }) => {
                         onClick={() => setMenuOpen(false)}
                       />
                       <div className={cn(
-                        'absolute bottom-full mb-1 w-32 bg-card border border-border rounded-[10px] shadow-lg z-20 overflow-hidden py-0.5',
+                        'absolute bottom-full mb-1 w-40 bg-card border border-border rounded-[10px] shadow-lg z-20 overflow-hidden py-0.5',
                         isMine ? 'right-0' : 'left-0'
                       )}>
+                        {/* Edit — own messages within 5 mins */}
                         {canEdit && (
                           <button
                             onClick={() => {
@@ -107,16 +110,32 @@ const MessageBubble = ({ message, isMine, onEdit, onDelete }) => {
                             Edit
                           </button>
                         )}
-                        {canDelete && (
+
+                        {/* Delete for me — always available */}
+                        {canDeleteForMe && (
                           <button
                             onClick={() => {
-                              setDeleteConfirmOpen(true)
+                              setDeleteMeOpen(true)
+                              setMenuOpen(false)
+                            }}
+                            className="w-full flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground hover:bg-accent transition-colors"
+                          >
+                            <EyeOff className="w-3 h-3" />
+                            Delete for Me
+                          </button>
+                        )}
+
+                        {/* Delete for everyone — own messages within 20 mins */}
+                        {canDeleteEveryone && (
+                          <button
+                            onClick={() => {
+                              setDeleteEveryoneOpen(true)
                               setMenuOpen(false)
                             }}
                             className="w-full flex items-center gap-2 px-3 py-2 text-xs text-destructive hover:bg-destructive/10 transition-colors"
                           >
                             <Trash2 className="w-3 h-3" />
-                            Delete
+                            Delete for Everyone
                           </button>
                         )}
                       </div>
@@ -126,7 +145,7 @@ const MessageBubble = ({ message, isMine, onEdit, onDelete }) => {
               </div>
             )}
 
-            {/* Message bubble */}
+            {/* Bubble */}
             {isEditing ? (
               <form onSubmit={handleEditSubmit} className="flex gap-2 items-end">
                 <textarea
@@ -176,7 +195,7 @@ const MessageBubble = ({ message, isMine, onEdit, onDelete }) => {
             )}
           </div>
 
-          {/* Timestamp — only if valid and not deleted */}
+          {/* Timestamp */}
           {!isDeleted && !isEditing && timeLabel && (
             <div className={cn(
               'flex items-center gap-1.5 px-1',
@@ -191,14 +210,31 @@ const MessageBubble = ({ message, isMine, onEdit, onDelete }) => {
         </div>
       </motion.div>
 
+      {/* Delete for everyone confirmation */}
       <ConfirmDialog
-        open={deleteConfirmOpen}
-        onClose={() => setDeleteConfirmOpen(false)}
-        onConfirm={handleDeleteConfirm}
-        title="Delete message for everyone?"
+        open={deleteEveryoneOpen}
+        onClose={() => setDeleteEveryoneOpen(false)}
+        onConfirm={() => {
+          onDelete(message._id)
+          setDeleteEveryoneOpen(false)
+        }}
+        title="Delete for everyone?"
         description="This message will be permanently deleted for everyone in the conversation. This cannot be undone."
         confirmText="Delete for Everyone"
-        cancelText="Cancel"
+        variant="destructive"
+      />
+
+      {/* Delete for me confirmation */}
+      <ConfirmDialog
+        open={deleteMeOpen}
+        onClose={() => setDeleteMeOpen(false)}
+        onConfirm={() => {
+          onDeleteForMe(message._id)
+          setDeleteMeOpen(false)
+        }}
+        title="Delete for you?"
+        description="This message will be removed from your view only. The other person can still see it."
+        confirmText="Delete for Me"
         variant="destructive"
       />
     </>

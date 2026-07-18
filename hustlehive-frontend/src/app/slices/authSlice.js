@@ -3,12 +3,13 @@ import { createSlice } from '@reduxjs/toolkit'
 const TOKEN_KEY = 'hh_token'
 const USER_KEY = 'hh_user'
 
-// Normalize user object — backend returns "id", we standardize to "_id"
 const normalizeUser = (user) => {
   if (!user) return null
+  const resolvedId = user._id || user.id
   return {
     ...user,
-    _id: user._id || user.id,
+    id: resolvedId?.toString(),
+    _id: resolvedId?.toString(),
   }
 }
 
@@ -17,9 +18,12 @@ const loadFromStorage = () => {
     const token = localStorage.getItem(TOKEN_KEY)
     const raw = JSON.parse(localStorage.getItem(USER_KEY))
     const user = normalizeUser(raw)
-    if (token && user) return { user, token, isAuthenticated: true }
+    if (token && user) {
+      localStorage.setItem(USER_KEY, JSON.stringify(user))
+      return { user, token, isAuthenticated: true }
+    }
   } catch {
-    // ignore parse errors
+    // ignore
   }
   return { user: null, token: null, isAuthenticated: false }
 }
@@ -45,6 +49,7 @@ const authSlice = createSlice({
       state.isAuthenticated = false
       localStorage.removeItem(TOKEN_KEY)
       localStorage.removeItem(USER_KEY)
+      // queryClient cache is cleared in RootLayout via useEffect
     },
     updateUser: (state, action) => {
       if (state.user) {

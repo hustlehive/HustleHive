@@ -32,6 +32,7 @@ import { ROUTES } from '@/constants/routes'
 import { cn } from '@/utils/cn'
 import useDebounce from '@/hooks/useDebounce'
 import { toast } from 'sonner'
+import useAuth from '@/hooks/useAuth'
 
 const TABS = [
   { id: 'friends', label: 'Friends', icon: Users },
@@ -43,11 +44,14 @@ const TABS = [
 // ── Friend Card ──
 const FriendCard = ({ friend }) => {
   const navigate = useNavigate()
+  const { user: authUser } = useAuth()
   const { mutate: unfriend, isPending } = useUnfriend()
   const [confirmOpen, setConfirmOpen] = useState(false)
-  const friendId = friend._id || friend.id
+  const friendId = (friend._id || friend.id)?.toString()
+  const currentUserId = (authUser?._id || authUser?.id)?.toString()
 
-  const handleMessage = async () => {
+  const handleMessage = async (e) => {
+    e.stopPropagation()
     try {
       const data = await startConversation({ type: 'friend', friendId })
       navigate(ROUTES.CONVERSATION(data.conversation._id))
@@ -56,12 +60,27 @@ const FriendCard = ({ friend }) => {
     }
   }
 
+  const handleUnfriend = (e) => {
+    e.stopPropagation()
+    setConfirmOpen(true)
+  }
+
+  const handleViewProfile = (e) => {
+    e.stopPropagation()
+    if (friendId === currentUserId) {
+      navigate(ROUTES.PROFILE)
+    } else {
+      navigate(ROUTES.PUBLIC_PROFILE(friendId))
+    }
+  }
+
   return (
     <>
       <motion.div
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-card border border-border rounded-[15px] p-4 flex items-center gap-3"
+        onClick={() => navigate(ROUTES.PUBLIC_PROFILE(friendId))}
+        className="bg-card border border-border rounded-[15px] p-4 flex items-center gap-3 cursor-pointer hover:border-primary/30 transition-colors"
       >
         <AppAvatar src={friend.profilePic?.url} name={friend.fullName} size="md" />
         <div className="flex-1 min-w-0">
@@ -69,7 +88,7 @@ const FriendCard = ({ friend }) => {
           <p className="text-xs text-muted-foreground truncate">@{friend.username}</p>
           <p className="text-xs text-muted-foreground truncate">{friend.college}</p>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-1 shrink-0">
           <button
             onClick={handleMessage}
             title="Message"
@@ -78,14 +97,7 @@ const FriendCard = ({ friend }) => {
             <MessageSquare className="w-4 h-4" />
           </button>
           <button
-            onClick={() => navigate(ROUTES.PUBLIC_PROFILE(friendId))}
-            title="View Profile"
-            className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-          >
-            <Users className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => setConfirmOpen(true)}
+            onClick={handleUnfriend}
             title="Unfriend"
             className="p-2 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
           >
@@ -110,15 +122,18 @@ const FriendCard = ({ friend }) => {
 
 // ── Received Request Card ──
 const ReceivedRequestCard = ({ request }) => {
+  const navigate = useNavigate()
   const { mutate: accept, isPending: isAccepting } = useAcceptFriendRequest()
   const { mutate: reject, isPending: isRejecting } = useRejectFriendRequest()
   const sender = request.sender
+  const senderId = (sender?._id || sender?.id)?.toString()
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-card border border-border rounded-[15px] p-4 flex items-center gap-3"
+      onClick={() => senderId && navigate(ROUTES.PUBLIC_PROFILE(senderId))}
+      className="bg-card border border-border rounded-[15px] p-4 flex items-center gap-3 cursor-pointer hover:border-primary/30 transition-colors"
     >
       <AppAvatar src={sender?.profilePic?.url} name={sender?.fullName} size="md" />
       <div className="flex-1 min-w-0">
@@ -128,7 +143,7 @@ const ReceivedRequestCard = ({ request }) => {
       </div>
       <div className="flex items-center gap-2 shrink-0">
         <button
-          onClick={() => accept(request._id)}
+          onClick={(e) => { e.stopPropagation(); accept(request._id) }}
           disabled={isAccepting || isRejecting}
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-primary text-white hover:bg-primary/90 transition-colors disabled:opacity-60"
         >
@@ -136,7 +151,7 @@ const ReceivedRequestCard = ({ request }) => {
           Accept
         </button>
         <button
-          onClick={() => reject(request._id)}
+          onClick={(e) => { e.stopPropagation(); reject(request._id) }}
           disabled={isAccepting || isRejecting}
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border border-destructive/30 text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-60"
         >
@@ -150,14 +165,17 @@ const ReceivedRequestCard = ({ request }) => {
 
 // ── Sent Request Card ──
 const SentRequestCard = ({ request }) => {
+  const navigate = useNavigate()
   const { mutate: cancel, isPending } = useCancelFriendRequest()
   const receiver = request.receiver
+  const receiverId = (receiver?._id || receiver?.id)?.toString()
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-card border border-border rounded-[15px] p-4 flex items-center gap-3"
+      onClick={() => receiverId && navigate(ROUTES.PUBLIC_PROFILE(receiverId))}
+      className="bg-card border border-border rounded-[15px] p-4 flex items-center gap-3 cursor-pointer hover:border-primary/30 transition-colors"
     >
       <AppAvatar src={receiver?.profilePic?.url} name={receiver?.fullName} size="md" />
       <div className="flex-1 min-w-0">
@@ -166,7 +184,7 @@ const SentRequestCard = ({ request }) => {
         <p className="text-xs text-muted-foreground truncate">{receiver?.college}</p>
       </div>
       <button
-        onClick={() => cancel(request._id)}
+        onClick={(e) => { e.stopPropagation(); cancel(request._id) }}
         disabled={isPending}
         className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border border-border text-muted-foreground hover:text-destructive hover:border-destructive/30 hover:bg-destructive/10 transition-colors disabled:opacity-60"
       >
@@ -179,8 +197,9 @@ const SentRequestCard = ({ request }) => {
 
 // ── Search User Card ──
 const SearchUserCard = ({ user }) => {
+  const navigate = useNavigate()
   const { mutate: sendRequest, isPending: isSending } = useSendFriendRequest()
-  const userId = user._id || user.id
+  const userId = (user._id || user.id)?.toString()
   const status = user.relationshipStatus
 
   const getActionButton = () => {
@@ -207,7 +226,7 @@ const SearchUserCard = ({ user }) => {
     }
     return (
       <button
-        onClick={() => sendRequest(userId)}
+        onClick={(e) => { e.stopPropagation(); sendRequest(userId) }}
         disabled={isSending}
         className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-primary text-white hover:bg-primary/90 transition-colors disabled:opacity-60"
       >
@@ -221,7 +240,8 @@ const SearchUserCard = ({ user }) => {
     <motion.div
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-card border border-border rounded-[15px] p-4 flex items-center gap-3"
+      onClick={() => userId && navigate(ROUTES.PUBLIC_PROFILE(userId))}
+      className="bg-card border border-border rounded-[15px] p-4 flex items-center gap-3 cursor-pointer hover:border-primary/30 transition-colors"
     >
       <AppAvatar src={user.profilePic?.url} name={user.fullName} size="md" />
       <div className="flex-1 min-w-0">
@@ -232,7 +252,9 @@ const SearchUserCard = ({ user }) => {
           <p className="text-xs text-muted-foreground truncate mt-0.5 italic">{user.bio}</p>
         )}
       </div>
-      <div className="shrink-0">{getActionButton()}</div>
+      <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
+        {getActionButton()}
+      </div>
     </motion.div>
   )
 }
@@ -312,7 +334,6 @@ const Friends = () => {
 
       {/* Tab Content */}
       <AnimatePresence mode="wait">
-        {/* Friends Tab */}
         {activeTab === 'friends' && (
           <motion.div
             key="friends"
@@ -341,7 +362,6 @@ const Friends = () => {
           </motion.div>
         )}
 
-        {/* Received Requests Tab */}
         {activeTab === 'received' && (
           <motion.div
             key="received"
@@ -370,7 +390,6 @@ const Friends = () => {
           </motion.div>
         )}
 
-        {/* Sent Requests Tab */}
         {activeTab === 'sent' && (
           <motion.div
             key="sent"
@@ -399,7 +418,6 @@ const Friends = () => {
           </motion.div>
         )}
 
-        {/* Search Tab */}
         {activeTab === 'search' && (
           <motion.div
             key="search"
@@ -408,7 +426,6 @@ const Friends = () => {
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.2 }}
           >
-            {/* Search input */}
             <div className="relative mb-4">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
               <input

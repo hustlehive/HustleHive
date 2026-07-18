@@ -18,3 +18,9 @@ export const editMessage = (messageId, content) =>
 
 export const deleteMessage = (messageId) =>
   axios.delete(`/messages/delete/${messageId}`)
+
+export const deleteConversationForMe = (conversationId) =>
+  axios.delete(`/messages/conversation/${conversationId}/me`)
+
+export const deleteMessageForMe = (messageId) =>
+  axios.delete(`/messages/me/${messageId}`)

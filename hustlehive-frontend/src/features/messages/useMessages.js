@@ -8,6 +8,8 @@ import {
   markConversationRead,
   editMessage,
   deleteMessage,
+  deleteConversationForMe,
+  deleteMessageForMe,
   startConversation,
 } from '@/api/messages.api'
 
@@ -33,18 +35,21 @@ export const useSendMessage = () => {
   return useMutation({
     mutationFn: sendMessage,
     onSuccess: (data) => {
-      const convId = data?.message?.conversation?.toString() || data?.message?.conversationId?.toString()
-      if (convId) {
-        // Append message to conversation cache
-        queryClient.setQueryData(queryKeys.conversation(convId), (old) => {
-          if (!old) return old
-          const exists = old.messages?.some((m) => m._id === data.message._id)
-          if (exists) return old
-          return { ...old, messages: [...(old.messages || []), data.message] }
-        })
-        // Refresh inbox
-        queryClient.invalidateQueries({ queryKey: ['messages', 'inbox'] })
-      }
+      const msg = data?.message
+      if (!msg) return
+      const convId = (
+        msg.conversation?._id ||
+        msg.conversation?.id ||
+        msg.conversation
+      )?.toString()
+      if (!convId) return
+      queryClient.setQueryData(queryKeys.conversation(convId), (old) => {
+        if (!old) return old
+        const exists = old.messages?.some((m) => m._id === msg._id)
+        if (exists) return old
+        return { ...old, messages: [...(old.messages || []), msg] }
+      })
+      queryClient.invalidateQueries({ queryKey: queryKeys.inbox() })
     },
     onError: (err) => toast.error(err.message),
   })
@@ -55,7 +60,7 @@ export const useMarkConversationRead = () => {
   return useMutation({
     mutationFn: markConversationRead,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['messages', 'inbox'] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.inbox() })
     },
   })
 }
@@ -95,6 +100,40 @@ export const useDeleteMessage = (conversationId) => {
           ),
         }
       })
+    },
+    onError: (err) => toast.error(err.message),
+  })
+}
+
+// New: Delete conversation for me
+export const useDeleteConversationForMe = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: deleteConversationForMe,
+    onSuccess: () => {
+      // Refetch inbox so the conversation disappears
+      queryClient.invalidateQueries({ queryKey: queryKeys.inbox() })
+      toast.success('Conversation deleted')
+    },
+    onError: (err) => toast.error(err.message),
+  })
+}
+
+// New: Delete message for me only
+export const useDeleteMessageForMe = (conversationId) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: deleteMessageForMe,
+    onSuccess: (_, messageId) => {
+      // Remove message from cache for this user only
+      queryClient.setQueryData(queryKeys.conversation(conversationId), (old) => {
+        if (!old) return old
+        return {
+          ...old,
+          messages: old.messages.filter((m) => m._id !== messageId),
+        }
+      })
+      toast.success('Message deleted for you')
     },
     onError: (err) => toast.error(err.message),
   })

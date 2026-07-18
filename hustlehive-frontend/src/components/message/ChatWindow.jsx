@@ -6,6 +6,7 @@ import {
   useMarkConversationRead,
   useEditMessage,
   useDeleteMessage,
+  useDeleteMessageForMe,
 } from '@/features/messages/useMessages'
 import { joinConversation, leaveConversation, getSocket } from '@/services/socket'
 import { clearUnreadMessages } from '@/app/slices/uiSlice'
@@ -61,121 +62,70 @@ const ChatWindow = ({ conversation, onBack }) => {
   const { mutate: markRead } = useMarkConversationRead()
   const { mutate: editMsg } = useEditMessage(conversationId)
   const { mutate: deleteMsg } = useDeleteMessage(conversationId)
+  const { mutate: deleteMsgForMe } = useDeleteMessageForMe(conversationId)
 
   const messages = data?.messages || []
   const other = conversation?.user
   const currentUserId = (user?._id || user?.id)?.toString()
 
-  // Join socket room + mark as read
+  // Join socket room
   useEffect(() => {
     if (!conversationId) return
 
-    console.log('[ChatWindow] Opening conversation:', conversationId)
     const socket = getSocket()
 
-    if (socket) {
-
-      if (socket.connected) {
-
-        joinConversation(conversationId)
-
-      }
-      else {
-
-        socket.once("connect", () => {
-
-          joinConversation(conversationId)
-
-        })
-
-      }
-
+    const doJoin = () => {
+      joinConversation(conversationId)
+      markRead(conversationId)
+      dispatch(clearUnreadMessages())
     }
-    markRead(conversationId)
-    dispatch(clearUnreadMessages())
+
+    if (socket) {
+      if (socket.connected) {
+        doJoin()
+      } else {
+        socket.once('connect', doJoin)
+      }
+    }
 
     return () => {
-
-      const socket = getSocket()
-
-      if (socket?.connected) {
-
-        leaveConversation(conversationId)
-
-      }
-
+      socket?.off('connect', doJoin)
+      const s = getSocket()
+      if (s?.connected) leaveConversation(conversationId)
     }
   }, [conversationId])
 
-  // Real-time socket listener for THIS conversation
+  // Real-time listener for this conversation
   useEffect(() => {
     if (!conversationId) return
 
     const socket = getSocket()
-    if (!socket) {
-      console.warn('[ChatWindow] ⚠️ No socket instance available')
-      return
-    }
-
-    console.log('[ChatWindow] Attaching new-message listener for conversation:', conversationId)
+    if (!socket) return
 
     const handleNewMessage = (payload) => {
+      const { conversationId: incomingConversationId, message } = payload
+      if (incomingConversationId !== conversationId) return
 
-      console.log("[ChatWindow] payload:", payload)
-
-      const {
-        conversationId: incomingConversationId,
-        message
-      } = payload
-
-      if (incomingConversationId !== conversationId) {
-        return
-      }
-
-      queryClient.setQueryData(
-        queryKeys.conversation(conversationId),
-        old => {
-
-          if (!old) {
-            return old
-          }
-
-          const exists = old.messages.some(
-            m => m._id === message._id
-          )
-
-          if (exists) {
-            return old
-          }
-
-          return {
-            ...old,
-            messages: [
-              ...old.messages,
-              message
-            ]
-          }
-
-        }
-      )
+      queryClient.setQueryData(queryKeys.conversation(conversationId), (old) => {
+        if (!old) return old
+        const exists = old.messages.some((m) => m._id === message._id)
+        if (exists) return old
+        return { ...old, messages: [...old.messages, message] }
+      })
 
       markRead(conversationId)
-
     }
 
     socket.on('new-message', handleNewMessage)
-    console.log('[ChatWindow] Listener attached. Socket connected?', socket.connected)
-
-    return () => {
-      console.log('[ChatWindow] Removing new-message listener')
-      socket.off('new-message', handleNewMessage)
-    }
+    return () => socket.off('new-message', handleNewMessage)
   }, [conversationId, queryClient])
 
+  // Auto scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages.length])
 
+  // Mark read on focus
   useEffect(() => {
     const handleFocus = () => {
       if (conversationId) markRead(conversationId)
@@ -196,6 +146,10 @@ const ChatWindow = ({ conversation, onBack }) => {
   const handleDelete = useCallback((messageId) => {
     deleteMsg(messageId)
   }, [deleteMsg])
+
+  const handleDeleteForMe = useCallback((messageId) => {
+    deleteMsgForMe(messageId)
+  }, [deleteMsgForMe])
 
   if (!conversation) {
     return (
@@ -265,6 +219,7 @@ const ChatWindow = ({ conversation, onBack }) => {
                     isMine={isMine}
                     onEdit={handleEdit}
                     onDelete={handleDelete}
+                    onDeleteForMe={handleDeleteForMe}
                   />
                 </div>
               )
