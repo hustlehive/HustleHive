@@ -357,7 +357,7 @@ const Dashboard = () => {
       )}
 
       {/* Floating Create Button */}
-      <motion.button
+      {/* <motion.button
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         whileHover={{ scale: 1.05 }}
@@ -373,7 +373,7 @@ const Dashboard = () => {
       >
         <Plus className="w-5 h-5" />
         <span className="hidden sm:inline">Create Hustle</span>
-      </motion.button>
+      </motion.button> */}
     </div>
   )
 }

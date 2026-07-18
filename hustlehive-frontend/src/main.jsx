@@ -37,7 +37,7 @@ createRoot(document.getElementById('root')).render(
             },
           }}
         />
-        {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
+        {/* {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />} */}
       </QueryClientProvider>
     </Provider>
   </StrictMode>

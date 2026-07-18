@@ -54,17 +54,6 @@ const Inbox = () => {
     (c) => c.conversationId === conversationId
   ) || null
 
-  // Auto-select first on desktop
-  useEffect(() => {
-    if (
-      !conversationId &&
-      conversations.length > 0 &&
-      window.innerWidth >= 768
-    ) {
-      navigate(ROUTES.CONVERSATION(conversations[0].conversationId), { replace: true })
-    }
-  }, [conversations.length, conversationId, activeTab])
-
   const handleSelectConversation = (conv) => {
     navigate(ROUTES.CONVERSATION(conv.conversationId))
   }

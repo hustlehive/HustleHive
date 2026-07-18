@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -16,7 +17,6 @@ import {
   LogOut,
   Zap,
 } from 'lucide-react'
-import { useState } from 'react'
 import { cn } from '@/utils/cn'
 import { ROUTES } from '@/constants/routes'
 import {
@@ -25,9 +25,8 @@ import {
   selectUnreadNotifications,
   selectUnreadMessages,
 } from '@/app/slices/uiSlice'
-import { logout } from '@/app/slices/authSlice'
-import { disconnectSocket } from '@/services/socket'
 import useAuth from '@/hooks/useAuth'
+import useLogout from '@/hooks/useLogout'
 import AppAvatar from '@/components/common/AppAvatar'
 import ConfirmDialog from '@/components/common/ConfirmDialog'
 
@@ -107,33 +106,25 @@ const NavItem = ({ item, collapsed, unreadMessages, unreadNotifications }) => {
 
 const Sidebar = ({ mobileOpen, onMobileClose }) => {
   const dispatch = useDispatch()
-  const navigate = useNavigate()
   const collapsed = useSelector(selectSidebarCollapsed)
   const unreadNotifications = useSelector(selectUnreadNotifications)
   const unreadMessages = useSelector(selectUnreadMessages)
   const { user, isAdmin, isAuthenticated } = useAuth()
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false)
+  const performLogout = useLogout()
 
-  const handleLogoutConfirm = () => {
-    disconnectSocket()
-    dispatch(logout())
-    setLogoutDialogOpen(false)
-    navigate(ROUTES.LOGIN, { replace: true })
-  }
-
-  // Redirect to dashboard if logged in, else homepage
   const handleLogoClick = () => {
     if (isAuthenticated) {
-      navigate(ROUTES.DASHBOARD)
+      window.location.href = ROUTES.DASHBOARD
     } else {
-      navigate(ROUTES.LANDING)
+      window.location.href = ROUTES.LANDING
     }
   }
 
   const sidebarContent = (
     <>
       <div className="flex flex-col h-full">
-        {/* Logo — clickable */}
+        {/* Logo */}
         <button
           onClick={handleLogoClick}
           className={cn(
@@ -199,12 +190,10 @@ const Sidebar = ({ mobileOpen, onMobileClose }) => {
 
         {/* User footer */}
         <div className="shrink-0 border-t border-border p-2">
-          <div
-            className={cn(
-              'flex items-center gap-2.5 p-2 rounded-lg transition-colors',
-              collapsed && 'justify-center'
-            )}
-          >
+          <div className={cn(
+            'flex items-center gap-2.5 p-2 rounded-lg transition-colors',
+            collapsed && 'justify-center'
+          )}>
             <AppAvatar
               src={user?.profilePic?.url}
               name={user?.fullName}
@@ -267,7 +256,7 @@ const Sidebar = ({ mobileOpen, onMobileClose }) => {
       <ConfirmDialog
         open={logoutDialogOpen}
         onClose={() => setLogoutDialogOpen(false)}
-        onConfirm={handleLogoutConfirm}
+        onConfirm={() => { setLogoutDialogOpen(false); performLogout() }}
         title="Log out of HustleHive?"
         description="You will be redirected to the login page. Your data will remain safe."
         confirmText="Log Out"
@@ -279,7 +268,6 @@ const Sidebar = ({ mobileOpen, onMobileClose }) => {
 
   return (
     <>
-      {/* Desktop sidebar */}
       <motion.aside
         animate={{ width: collapsed ? 68 : 260 }}
         transition={{ duration: 0.25, ease: 'easeInOut' }}
@@ -290,7 +278,6 @@ const Sidebar = ({ mobileOpen, onMobileClose }) => {
         </div>
       </motion.aside>
 
-      {/* Mobile drawer */}
       <AnimatePresence>
         {mobileOpen && (
           <>

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react'
-import { MessageSquare, ArrowLeft } from 'lucide-react'
+import { MessageSquare, ArrowLeft, Lock } from 'lucide-react'
 import {
   useConversationMessages,
   useSendMessage,
@@ -49,6 +49,16 @@ const MessagesSkeleton = () => (
   </div>
 )
 
+// E2E encryption notice — shown once above the first message
+const EncryptionNotice = () => (
+  <div className="flex items-center justify-center gap-1.5 py-3 px-4">
+    <Lock className="w-3 h-3 text-muted-foreground shrink-0" />
+    <p className="text-[11px] text-muted-foreground text-center">
+      Messages are end-to-end encrypted. No one outside this chat can read them.
+    </p>
+  </div>
+)
+
 const ChatWindow = ({ conversation, onBack }) => {
   const { user } = useAuth()
   const dispatch = useDispatch()
@@ -73,7 +83,6 @@ const ChatWindow = ({ conversation, onBack }) => {
     if (!conversationId) return
 
     const socket = getSocket()
-
     const doJoin = () => {
       joinConversation(conversationId)
       markRead(conversationId)
@@ -95,29 +104,68 @@ const ChatWindow = ({ conversation, onBack }) => {
     }
   }, [conversationId])
 
-  // Real-time listener for this conversation
+  // All real-time socket listeners for this conversation
   useEffect(() => {
     if (!conversationId) return
-
     const socket = getSocket()
     if (!socket) return
 
+    // New message — append to cache
     const handleNewMessage = (payload) => {
-      const { conversationId: incomingConversationId, message } = payload
-      if (incomingConversationId !== conversationId) return
-
+      const { conversationId: incomingId, message } = payload
+      if (incomingId !== conversationId) return
       queryClient.setQueryData(queryKeys.conversation(conversationId), (old) => {
+        console.log("CACHE:", old);
+        console.log("PAYLOAD:", payload);
         if (!old) return old
         const exists = old.messages.some((m) => m._id === message._id)
         if (exists) return old
         return { ...old, messages: [...old.messages, message] }
       })
-
       markRead(conversationId)
     }
 
+    // Edited message — update content in cache for both sender and receiver
+    const handleEditedMessage = (payload) => {
+      const { conversationId: incomingId, message } = payload
+      if (incomingId !== conversationId) return
+      queryClient.setQueryData(queryKeys.conversation(conversationId), (old) => {
+        if (!old) return old
+        return {
+          ...old,
+          messages: old.messages.map((m) =>
+            m._id === message._id ? { ...m, ...message } : m
+          ),
+        }
+      })
+    }
+
+    const handleDeleteForEveryone = (payload) => {
+      const { conversationId: incomingId, messageId } = payload
+      if (incomingId !== conversationId) return
+      queryClient.setQueryData(queryKeys.conversation(conversationId), (old) => {
+        if (!old) return old
+        return {
+          ...old,
+          messages: old.messages.map((m) =>
+            m._id === messageId
+              ? { ...m, deletedForEveryone: true, content: 'This message was deleted.' }
+              : m
+          ),
+        }
+      })
+      queryClient.invalidateQueries({ queryKey: queryKeys.inbox() })
+    }
+
     socket.on('new-message', handleNewMessage)
-    return () => socket.off('new-message', handleNewMessage)
+    socket.on('edited-message', handleEditedMessage)
+    socket.on('delete-for-everyone', handleDeleteForEveryone)
+
+    return () => {
+      socket.off('new-message', handleNewMessage)
+      socket.off('edited-message', handleEditedMessage)
+      socket.off('delete-for-everyone', handleDeleteForEveryone)
+    }
   }, [conversationId, queryClient])
 
   // Auto scroll
@@ -167,6 +215,7 @@ const ChatWindow = ({ conversation, onBack }) => {
 
   return (
     <div className="flex-1 flex flex-col h-full min-h-0">
+      {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-card shrink-0">
         {onBack && (
           <button
@@ -190,10 +239,11 @@ const ChatWindow = ({ conversation, onBack }) => {
         </div>
       </div>
 
+      {/* Messages */}
       {isLoading ? (
         <MessagesSkeleton />
       ) : (
-        <div className="flex-1 overflow-y-auto py-4 space-y-1">
+        <div className="flex-1 overflow-y-auto py-2 space-y-1">
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full gap-3 text-center px-8">
               <AppAvatar src={other?.profilePic?.url} name={other?.fullName} size="xl" />
@@ -201,29 +251,39 @@ const ChatWindow = ({ conversation, onBack }) => {
                 <p className="text-sm font-semibold text-foreground">{other?.fullName}</p>
                 <p className="text-xs text-muted-foreground mt-1">No messages yet. Say hello!</p>
               </div>
+              <EncryptionNotice />
             </div>
           ) : (
-            messages.map((msg, idx) => {
-              const prevMsg = messages[idx - 1]
-              const showDateSep = !prevMsg || !isSameDay(prevMsg.createdAt, msg.createdAt)
-              const senderId = (msg.sender?._id || msg.sender?.id || msg.sender)?.toString()
-              const isMine = senderId === currentUserId
+            <>
+              {/* E2E notice above first message */}
+              <EncryptionNotice />
 
-              return (
-                <div key={msg._id}>
-                  {showDateSep && msg.createdAt && (
-                    <DateSeparator date={msg.createdAt} />
-                  )}
-                  <MessageBubble
-                    message={msg}
-                    isMine={isMine}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                    onDeleteForMe={handleDeleteForMe}
-                  />
-                </div>
-              )
-            })
+              {messages.map((msg, idx) => {
+                const prevMsg = messages[idx - 1]
+                const showDateSep = !prevMsg || !isSameDay(prevMsg.createdAt, msg.createdAt)
+                const senderId = (
+                  msg.sender?._id ||
+                  msg.sender?.id ||
+                  msg.sender
+                )?.toString()
+                const isMine = senderId === currentUserId
+
+                return (
+                  <div key={msg._id}>
+                    {showDateSep && msg.createdAt && (
+                      <DateSeparator date={msg.createdAt} />
+                    )}
+                    <MessageBubble
+                      message={msg}
+                      isMine={isMine}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                      onDeleteForMe={handleDeleteForMe}
+                    />
+                  </div>
+                )
+              })}
+            </>
           )}
           <div ref={messagesEndRef} />
         </div>

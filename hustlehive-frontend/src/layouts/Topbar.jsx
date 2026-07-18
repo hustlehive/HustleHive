@@ -1,14 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useSelector, useDispatch } from 'react-redux'
+import { useSelector } from 'react-redux'
 import { Menu, Search, Bell, LogOut, User, ChevronDown, Zap } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/utils/cn'
 import { ROUTES } from '@/constants/routes'
 import { selectSidebarCollapsed, selectUnreadNotifications } from '@/app/slices/uiSlice'
-import { logout } from '@/app/slices/authSlice'
-import { disconnectSocket } from '@/services/socket'
 import useAuth from '@/hooks/useAuth'
+import useLogout from '@/hooks/useLogout'
 import ThemeToggle from '@/components/common/ThemeToggle'
 import AppAvatar from '@/components/common/AppAvatar'
 import NotificationDropdown from '@/components/notification/NotificationDropdown'
@@ -16,10 +15,10 @@ import ConfirmDialog from '@/components/common/ConfirmDialog'
 
 const Topbar = ({ onMobileMenuOpen }) => {
   const navigate = useNavigate()
-  const dispatch = useDispatch()
   const collapsed = useSelector(selectSidebarCollapsed)
   const unreadNotifications = useSelector(selectUnreadNotifications)
   const { user } = useAuth()
+  const performLogout = useLogout()
 
   const [searchQuery, setSearchQuery] = useState('')
   const [notifOpen, setNotifOpen] = useState(false)
@@ -34,13 +33,6 @@ const Topbar = ({ onMobileMenuOpen }) => {
     }
   }
 
-  const handleLogoutConfirm = () => {
-    disconnectSocket()
-    dispatch(logout())
-    setLogoutDialogOpen(false)
-    navigate(ROUTES.LOGIN, { replace: true })
-  }
-
   return (
     <>
       <header
@@ -51,7 +43,7 @@ const Topbar = ({ onMobileMenuOpen }) => {
           collapsed && 'lg:left-[68px]'
         )}
       >
-        {/* Mobile menu button */}
+        {/* Mobile menu */}
         <button
           onClick={onMobileMenuOpen}
           className="lg:hidden p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
@@ -60,10 +52,10 @@ const Topbar = ({ onMobileMenuOpen }) => {
           <Menu className="w-5 h-5" />
         </button>
 
-        {/* Logo — visible on mobile only (sidebar hidden) */}
+        {/* Mobile logo */}
         <button
           onClick={() => navigate(ROUTES.DASHBOARD)}
-          className="lg:flex items-center gap-2 shrink-0"
+          className="lg:hidden flex items-center gap-2 shrink-0"
           aria-label="Go to dashboard"
         >
           <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
@@ -71,7 +63,7 @@ const Topbar = ({ onMobileMenuOpen }) => {
           </div>
         </button>
 
-        {/* Search bar */}
+        {/* Search */}
         <form onSubmit={handleSearch} className="flex-1 max-w-md">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
@@ -92,13 +84,10 @@ const Topbar = ({ onMobileMenuOpen }) => {
         <div className="flex items-center gap-1 ml-auto">
           <ThemeToggle />
 
-          {/* Notification bell */}
+          {/* Notifications */}
           <div className="relative">
             <button
-              onClick={() => {
-                setNotifOpen((p) => !p)
-                setProfileOpen(false)
-              }}
+              onClick={() => { setNotifOpen((p) => !p); setProfileOpen(false) }}
               aria-label="Notifications"
               className="relative p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
             >
@@ -118,10 +107,7 @@ const Topbar = ({ onMobileMenuOpen }) => {
           {/* Profile menu */}
           <div className="relative">
             <button
-              onClick={() => {
-                setProfileOpen((p) => !p)
-                setNotifOpen(false)
-              }}
+              onClick={() => { setProfileOpen((p) => !p); setNotifOpen(false) }}
               className="flex items-center gap-2 p-1.5 rounded-md hover:bg-accent transition-colors"
               aria-label="Profile menu"
             >
@@ -138,36 +124,21 @@ const Topbar = ({ onMobileMenuOpen }) => {
                   transition={{ duration: 0.15 }}
                   className="absolute right-0 top-full mt-2 w-52 bg-card border border-border rounded-[15px] shadow-xl z-50 overflow-hidden"
                 >
-                  {/* User info */}
                   <div className="p-3 border-b border-border">
-                    <p className="text-sm font-semibold text-foreground truncate">
-                      {user?.fullName}
-                    </p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      @{user?.username}
-                    </p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {user?.college}
-                    </p>
+                    <p className="text-sm font-semibold text-foreground truncate">{user?.fullName}</p>
+                    <p className="text-xs text-muted-foreground truncate">@{user?.username}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user?.college}</p>
                   </div>
-
-                  {/* Menu items */}
                   <div className="p-1">
                     <button
-                      onClick={() => {
-                        navigate(ROUTES.PROFILE)
-                        setProfileOpen(false)
-                      }}
+                      onClick={() => { navigate(ROUTES.PROFILE); setProfileOpen(false) }}
                       className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-foreground hover:bg-accent rounded-md transition-colors"
                     >
                       <User className="w-4 h-4 text-muted-foreground" />
                       My Profile
                     </button>
                     <button
-                      onClick={() => {
-                        setProfileOpen(false)
-                        setLogoutDialogOpen(true)
-                      }}
+                      onClick={() => { setProfileOpen(false); setLogoutDialogOpen(true) }}
                       className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 rounded-md transition-colors"
                     >
                       <LogOut className="w-4 h-4" />
@@ -181,11 +152,10 @@ const Topbar = ({ onMobileMenuOpen }) => {
         </div>
       </header>
 
-      {/* Logout Confirmation Dialog */}
       <ConfirmDialog
         open={logoutDialogOpen}
         onClose={() => setLogoutDialogOpen(false)}
-        onConfirm={handleLogoutConfirm}
+        onConfirm={() => { setLogoutDialogOpen(false); performLogout() }}
         title="Log out of HustleHive?"
         description="You will be redirected to the login page. Your data will remain safe."
         confirmText="Log Out"
