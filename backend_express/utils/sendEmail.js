@@ -5,7 +5,10 @@ const sendEmail = async (email, subject, text) => {
     try {
 
         const transporter = nodemailer.createTransport({
-            service: "gmail",
+            host: "smtp.gmail.com",
+            port: 587,
+            secure: false,
+            family: 4, // you said you tried this — make sure it's actually being passed to the underlying socket
             auth: {
                 user: process.env.EMAIL_USER,
                 pass: process.env.EMAIL_PASS,
