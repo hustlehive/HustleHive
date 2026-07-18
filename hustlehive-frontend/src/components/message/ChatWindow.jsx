@@ -50,14 +50,14 @@ const MessagesSkeleton = () => (
 )
 
 // E2E encryption notice — shown once above the first message
-const EncryptionNotice = () => (
-  <div className="flex items-center justify-center gap-1.5 py-3 px-4">
-    <Lock className="w-3 h-3 text-muted-foreground shrink-0" />
-    <p className="text-[11px] text-muted-foreground text-center">
-      Messages are end-to-end encrypted. No one outside this chat can read them.
-    </p>
-  </div>
-)
+// const EncryptionNotice = () => (
+//   <div className="flex items-center justify-center gap-1.5 py-3 px-4">
+//     <Lock className="w-3 h-3 text-muted-foreground shrink-0" />
+//     <p className="text-[11px] text-muted-foreground text-center">
+//       Messages are end-to-end encrypted. No one outside this chat can read them.
+//     </p>
+//   </div>
+// )
 
 const ChatWindow = ({ conversation, onBack }) => {
   const { user } = useAuth()
@@ -251,12 +251,12 @@ const ChatWindow = ({ conversation, onBack }) => {
                 <p className="text-sm font-semibold text-foreground">{other?.fullName}</p>
                 <p className="text-xs text-muted-foreground mt-1">No messages yet. Say hello!</p>
               </div>
-              <EncryptionNotice />
+              {/* <EncryptionNotice /> */}
             </div>
           ) : (
             <>
               {/* E2E notice above first message */}
-              <EncryptionNotice />
+              {/* <EncryptionNotice /> */}
 
               {messages.map((msg, idx) => {
                 const prevMsg = messages[idx - 1]
