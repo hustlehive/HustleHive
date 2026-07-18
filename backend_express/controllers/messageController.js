@@ -490,6 +490,16 @@ const editMessage = asyncHandler(async (req, res) => {
 
     await message.save();
 
+    const io = getIO();
+
+    io.to(message.conversation.toString()).emit(
+        "edited-message",
+        {
+            conversationId: message.conversation,
+            message
+        }
+    );
+
     res.status(200).json({
         success: true,
         message
@@ -530,6 +540,16 @@ const deleteMessageForEveryone = asyncHandler(async (req, res) => {
     // message.content = "This message was deleted.";
 
     await message.save();
+
+    const io = getIO();
+
+    io.to(message.conversation.toString()).emit(
+        "delete-for-everyone",
+        {
+            conversationId: message.conversation,
+            messageId: message._id
+        }
+    );
 
     res.status(200).json({
         success: true,

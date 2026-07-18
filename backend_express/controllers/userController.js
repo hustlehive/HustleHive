@@ -28,7 +28,13 @@ const searchUsers = asyncHandler(async (req, res) => {
                             $regex: username,
                             $options: "i"
                         }
-                    }
+                    },
+                    {
+                        email: {
+                            $regex: username,
+                            $options: "i"
+                        }
+                    },
                 ]
             },
             {
