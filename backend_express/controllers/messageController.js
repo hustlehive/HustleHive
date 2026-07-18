@@ -382,7 +382,7 @@ const getMessages = asyncHandler(async (req, res) => {
         throw new Error("Not authorized");
     }
 
-    const messages = await Message.find({
+    const unformattedMessages = await Message.find({
         conversation: conversationId,
         hiddenFor: {
             $ne: req.user._id
@@ -394,7 +394,7 @@ const getMessages = asyncHandler(async (req, res) => {
         )
         .sort({ createdAt: 1 });
 
-    const formattedMessages = messages.map(message => {
+    const messages = unformattedMessages.map(message => {
 
         const msg = message.toObject();
 
@@ -408,8 +408,8 @@ const getMessages = asyncHandler(async (req, res) => {
 
     res.status(200).json({
         success: true,
-        count: formattedMessages.length,
-        formattedMessages
+        count: messages.length,
+        messages
     });
 
 });
