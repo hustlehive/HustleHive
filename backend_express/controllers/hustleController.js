@@ -296,15 +296,15 @@ const applyToHustle = asyncHandler(async (req, res) => {
             applicant: req.user._id
         });
 
-    await createNotification({
-        receiver: hustle.createdBy,
-        sender: req.user._id,
-        type: "hustle_application",
-        title: "New Application",
-        body: `applied to your hustle.`,
-        referenceId: application._id,
-        referenceType: "Application"
-    });
+    // await createNotification({
+    //     receiver: hustle.createdBy,
+    //     sender: req.user._id,
+    //     type: "hustle_application",
+    //     title: "New Application",
+    //     body: `applied to your hustle.`,
+    //     referenceId: application._id,
+    //     referenceType: "Application"
+    // });
 
     res.status(201).json({
         success: true,
@@ -394,7 +394,7 @@ const acceptApplication = asyncHandler(async (req, res) => {
         sender: req.user._id,
         type: "application_accepted",
         title: "Application Accepted",
-        body: `Your application has been accepted.`,
+        body: `Your application for Hustle: ${hustle.title} has been accepted.`,
         referenceId: application._id,
         referenceType: "Application"
     });
@@ -444,15 +444,15 @@ const rejectApplication = asyncHandler(async (req, res) => {
 
     await application.save();
 
-    await createNotification({
-        receiver: application.applicant,
-        sender: req.user._id,
-        type: "application_rejected",
-        title: "Application Rejected",
-        body: `Your application has been rejected.`,
-        referenceId: application._id,
-        referenceType: "Application"
-    });
+    // await createNotification({
+    //     receiver: application.applicant,
+    //     sender: req.user._id,
+    //     type: "application_rejected",
+    //     title: "Application Rejected",
+    //     body: `Your application has been rejected.`,
+    //     referenceId: application._id,
+    //     referenceType: "Application"
+    // });
 
     res.status(200).json({
         success: true,

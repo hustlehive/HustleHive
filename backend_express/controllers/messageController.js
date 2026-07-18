@@ -272,15 +272,15 @@ const sendMessage = asyncHandler(async (req, res) => {
             participant.user.toString() !== req.user._id.toString()
     );
 
-    await createNotification({
-        receiver: receiver.user._id || receiver.user,
-        sender: req.user._id,
-        type: "message",
-        title: "New Message",
-        body: content,
-        referenceId: conversation._id,
-        referenceType: "Conversation"
-    });
+    // await createNotification({
+    //     receiver: receiver.user._id || receiver.user,
+    //     sender: req.user._id,
+    //     type: "message",
+    //     title: "New Message",
+    //     body: content,
+    //     referenceId: conversation._id,
+    //     referenceType: "Conversation"
+    // });
 
     res.status(201).json({
         success: true,
