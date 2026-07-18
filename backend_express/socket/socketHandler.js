@@ -9,9 +9,6 @@ const initializeSocket = (io) => {
     io.on("connection", (socket) => {
         console.log("User Connected:", socket.id);
 
-        const userId = socket.user._id;
-        socket.join(userId.toString());
-
         socket.on("join-conversation", (conversationId) => {
             socket.join(conversationId);
         });
