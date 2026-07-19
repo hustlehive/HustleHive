@@ -377,11 +377,11 @@ const resetPassword = asyncHandler(async (req, res) => {
         purpose: "forgot-password"
     });
 
-    await sendEmail(
-        email,
-        "HustleHive Password changed",
-        `Hi ${user.fullName}! Your HustleHive password has been changed succesfully.`
-    );
+    // await sendEmail(
+    //     email,
+    //     "HustleHive Password changed",
+    //     `Hi ${user.fullName}! Your HustleHive password has been changed succesfully.`
+    // );
 
     res.status(200).json({
         success: true,
