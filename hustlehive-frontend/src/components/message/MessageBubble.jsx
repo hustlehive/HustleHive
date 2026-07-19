@@ -84,7 +84,7 @@ const MessageBubble = ({ message, isMine, onEdit, onDelete, onDeleteForMe }) => 
           isMine ? 'flex-row-reverse' : 'flex-row'
         )}
       >
-        <div className={cn('max-w-[70%] flex flex-col gap-1', isMine && 'items-end')}>
+        <div className={cn('max-w-[75%] flex flex-col gap-1', isMine && 'items-end')}>
           <div className="relative flex items-end gap-2">
 
             {/* Desktop hover menu button */}
@@ -197,13 +197,13 @@ const MessageBubble = ({ message, isMine, onEdit, onDelete, onDeleteForMe }) => 
                 onTouchEnd={handleTouchEnd}
                 onTouchMove={handleTouchEnd}
                 className={cn(
-                  'px-3 py-2 rounded-[12px] text-sm leading-relaxed break-words whitespace-pre-wrap overflow-hidden',
+                  'px-3 py-2 rounded-[12px] text-sm leading-relaxed break-words break-all whitespace-pre-wrap overflow-hidden min-w-0',
                   'select-none',
                   isDeleted
                     ? 'bg-muted text-muted-foreground italic border border-border'
                     : isMine
-                    ? 'bg-primary text-white'
-                    : 'bg-muted text-foreground'
+                      ? 'bg-primary text-white'
+                      : 'bg-muted text-foreground'
                 )}
               >
                 {message.content}
