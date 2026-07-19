@@ -243,7 +243,7 @@ const ChatWindow = ({ conversation, onBack }) => {
       {isLoading ? (
         <MessagesSkeleton />
       ) : (
-        <div className="flex-1 overflow-y-auto py-2 space-y-1">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden py-2 space-y-1">
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full gap-3 text-center px-8">
               <AppAvatar src={other?.profilePic?.url} name={other?.fullName} size="xl" />

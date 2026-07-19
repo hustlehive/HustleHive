@@ -80,7 +80,7 @@ const Inbox = () => {
   return (
     <div
       className="flex bg-background rounded-[15px] border border-border overflow-hidden"
-      style={{ height: 'calc(100vh - 130px)' }}
+      style={{ height: 'calc(100dvh - 130px)' }}
     >
       {/* Left panel */}
       <div

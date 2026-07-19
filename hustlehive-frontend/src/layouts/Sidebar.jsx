@@ -29,6 +29,9 @@ import useAuth from '@/hooks/useAuth'
 import useLogout from '@/hooks/useLogout'
 import AppAvatar from '@/components/common/AppAvatar'
 import ConfirmDialog from '@/components/common/ConfirmDialog'
+import { useQuery } from '@tanstack/react-query'
+import { getInbox } from '@/api/messages.api'
+import { queryKeys } from '@/constants/queryKeys'
 
 const navItems = [
   { label: 'Dashboard', icon: LayoutDashboard, to: ROUTES.DASHBOARD },
@@ -50,8 +53,8 @@ const NavItem = ({ item, collapsed, unreadMessages, unreadNotifications }) => {
     item.badge === 'messages'
       ? unreadMessages
       : item.badge === 'notifications'
-      ? unreadNotifications
-      : 0
+        ? unreadNotifications
+        : 0
 
   return (
     <NavLink
@@ -109,7 +112,18 @@ const Sidebar = ({ mobileOpen, onMobileClose }) => {
   const collapsed = useSelector(selectSidebarCollapsed)
   const unreadNotifications = useSelector(selectUnreadNotifications)
   const unreadMessages = useSelector(selectUnreadMessages)
+  // Real-time inbox unread count from query cache
   const { user, isAdmin, isAuthenticated } = useAuth()
+  const { data: inboxData } = useQuery({
+    queryKey: queryKeys.inbox(),
+    queryFn: () => getInbox(),
+    staleTime: 0,
+    enabled: !!user,
+  })
+  const inboxUnreadCount = (inboxData?.inbox || []).filter(
+    (c) => (c.unreadCount || 0) > 0
+  ).length
+
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false)
   const performLogout = useLogout()
 
@@ -159,7 +173,7 @@ const Sidebar = ({ mobileOpen, onMobileClose }) => {
               key={item.to}
               item={item}
               collapsed={collapsed}
-              unreadMessages={unreadMessages}
+              unreadMessages={inboxUnreadCount}
               unreadNotifications={unreadNotifications}
             />
           ))}

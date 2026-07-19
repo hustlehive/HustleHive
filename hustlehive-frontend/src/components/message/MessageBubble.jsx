@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { MoreHorizontal, Edit2, Trash2, Check, X, EyeOff } from 'lucide-react'
 import { cn } from '@/utils/cn'
@@ -28,17 +28,31 @@ const MessageBubble = ({ message, isMine, onEdit, onDelete, onDeleteForMe }) => 
   const [editContent, setEditContent] = useState(message.content)
   const [deleteEveryoneOpen, setDeleteEveryoneOpen] = useState(false)
   const [deleteMeOpen, setDeleteMeOpen] = useState(false)
+  const longPressTimer = useRef(null)
+  const longPressTriggered = useRef(false)
 
   const isDeleted = message.deletedForEveryone
-
-  // Edit: own messages, within 5 mins, not deleted
   const canEdit = isMine && !isDeleted && isWithinMinutes(message.createdAt, 5)
-  // Delete for everyone: own messages, within 20 mins, not deleted
   const canDeleteEveryone = isMine && !isDeleted && isWithinMinutes(message.createdAt, 20)
-  // Delete for me: always available if not already deleted
   const canDeleteForMe = !isDeleted
-
   const showMenu = !isDeleted && (canEdit || canDeleteEveryone || canDeleteForMe)
+
+  // Long press handlers for mobile
+  const handleTouchStart = () => {
+    if (!showMenu || isEditing) return
+    longPressTriggered.current = false
+    longPressTimer.current = setTimeout(() => {
+      longPressTriggered.current = true
+      setMenuOpen(true)
+    }, 500)
+  }
+
+  const handleTouchEnd = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current)
+      longPressTimer.current = null
+    }
+  }
 
   const handleEditSubmit = (e) => {
     e.preventDefault()
@@ -72,10 +86,13 @@ const MessageBubble = ({ message, isMine, onEdit, onDelete, onDeleteForMe }) => 
       >
         <div className={cn('max-w-[70%] flex flex-col gap-1', isMine && 'items-end')}>
           <div className="relative flex items-end gap-2">
-            {/* Action menu */}
+
+            {/* Desktop hover menu button */}
             {showMenu && !isEditing && (
               <div className={cn(
-                'opacity-0 group-hover:opacity-100 transition-opacity flex items-center',
+                'transition-opacity flex items-center',
+                'opacity-0 group-hover:opacity-100', // desktop hover
+                menuOpen && 'opacity-100',            // keep visible when open
                 isMine ? 'order-first' : 'order-last'
               )}>
                 <div className="relative">
@@ -93,10 +110,9 @@ const MessageBubble = ({ message, isMine, onEdit, onDelete, onDeleteForMe }) => 
                         onClick={() => setMenuOpen(false)}
                       />
                       <div className={cn(
-                        'absolute bottom-full mb-1 w-40 bg-card border border-border rounded-[10px] shadow-lg z-20 overflow-hidden py-0.5',
+                        'absolute bottom-full mb-1 w-44 bg-card border border-border rounded-[10px] shadow-lg z-20 overflow-hidden py-0.5',
                         isMine ? 'right-0' : 'left-0'
                       )}>
-                        {/* Edit - own messages within 5 mins */}
                         {canEdit && (
                           <button
                             onClick={() => {
@@ -104,37 +120,33 @@ const MessageBubble = ({ message, isMine, onEdit, onDelete, onDeleteForMe }) => 
                               setEditContent(message.content)
                               setMenuOpen(false)
                             }}
-                            className="w-full flex items-center gap-2 px-3 py-2 text-xs text-foreground hover:bg-accent transition-colors"
+                            className="w-full flex items-center gap-2 px-3 py-2.5 text-xs text-foreground hover:bg-accent transition-colors"
                           >
-                            <Edit2 className="w-3 h-3" />
+                            <Edit2 className="w-3.5 h-3.5" />
                             Edit
                           </button>
                         )}
-
-                        {/* Delete for me - always available */}
                         {canDeleteForMe && (
                           <button
                             onClick={() => {
                               setDeleteMeOpen(true)
                               setMenuOpen(false)
                             }}
-                            className="w-full flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground hover:bg-accent transition-colors"
+                            className="w-full flex items-center gap-2 px-3 py-2.5 text-xs text-muted-foreground hover:bg-accent transition-colors"
                           >
-                            <EyeOff className="w-3 h-3" />
+                            <EyeOff className="w-3.5 h-3.5" />
                             Delete for Me
                           </button>
                         )}
-
-                        {/* Delete for everyone - own messages within 20 mins */}
                         {canDeleteEveryone && (
                           <button
                             onClick={() => {
                               setDeleteEveryoneOpen(true)
                               setMenuOpen(false)
                             }}
-                            className="w-full flex items-center gap-2 px-3 py-2 text-xs text-destructive hover:bg-destructive/10 transition-colors"
+                            className="w-full flex items-center gap-2 px-3 py-2.5 text-xs text-destructive hover:bg-destructive/10 transition-colors"
                           >
-                            <Trash2 className="w-3 h-3" />
+                            <Trash2 className="w-3.5 h-3.5" />
                             Delete for Everyone
                           </button>
                         )}
@@ -145,7 +157,7 @@ const MessageBubble = ({ message, isMine, onEdit, onDelete, onDeleteForMe }) => 
               </div>
             )}
 
-            {/* Bubble */}
+            {/* Message bubble — long press on mobile opens menu */}
             {isEditing ? (
               <form onSubmit={handleEditSubmit} className="flex gap-2 items-end">
                 <textarea
@@ -167,7 +179,6 @@ const MessageBubble = ({ message, isMine, onEdit, onDelete, onDeleteForMe }) => 
                   <button
                     type="submit"
                     className="p-1.5 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
-                    title="Save"
                   >
                     <Check className="w-3.5 h-3.5" />
                   </button>
@@ -175,21 +186,26 @@ const MessageBubble = ({ message, isMine, onEdit, onDelete, onDeleteForMe }) => 
                     type="button"
                     onClick={handleEditCancel}
                     className="p-1.5 bg-muted text-muted-foreground rounded-md hover:bg-accent transition-colors"
-                    title="Cancel"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </form>
             ) : (
-              <div className={cn(
-                'px-3 py-2 rounded-[12px] text-sm leading-relaxed break-words',
-                isDeleted
-                  ? 'bg-muted text-muted-foreground italic border border-border'
-                  : isMine
-                  ? 'bg-primary text-white'
-                  : 'bg-muted text-foreground'
-              )}>
+              <div
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
+                onTouchMove={handleTouchEnd}
+                className={cn(
+                  'px-3 py-2 rounded-[12px] text-sm leading-relaxed break-words whitespace-pre-wrap overflow-hidden',
+                  'select-none',
+                  isDeleted
+                    ? 'bg-muted text-muted-foreground italic border border-border'
+                    : isMine
+                    ? 'bg-primary text-white'
+                    : 'bg-muted text-foreground'
+                )}
+              >
                 {message.content}
               </div>
             )}
@@ -210,30 +226,22 @@ const MessageBubble = ({ message, isMine, onEdit, onDelete, onDeleteForMe }) => 
         </div>
       </motion.div>
 
-      {/* Delete for everyone confirmation */}
       <ConfirmDialog
         open={deleteEveryoneOpen}
         onClose={() => setDeleteEveryoneOpen(false)}
-        onConfirm={() => {
-          onDelete(message._id)
-          setDeleteEveryoneOpen(false)
-        }}
+        onConfirm={() => { onDelete(message._id); setDeleteEveryoneOpen(false) }}
         title="Delete for everyone?"
-        description="This message will be permanently deleted for everyone in the conversation. This cannot be undone."
+        description="This message will be permanently deleted for everyone. This cannot be undone."
         confirmText="Delete for Everyone"
         variant="destructive"
       />
 
-      {/* Delete for me confirmation */}
       <ConfirmDialog
         open={deleteMeOpen}
         onClose={() => setDeleteMeOpen(false)}
-        onConfirm={() => {
-          onDeleteForMe(message._id)
-          setDeleteMeOpen(false)
-        }}
+        onConfirm={() => { onDeleteForMe(message._id); setDeleteMeOpen(false) }}
         title="Delete for you?"
-        description="This message will be removed from your view only. The other person can still see it."
+        description="This message will be removed from your view only."
         confirmText="Delete for Me"
         variant="destructive"
       />

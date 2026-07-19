@@ -34,7 +34,7 @@ const RootLayout = () => {
         )}
       >
         <Topbar onMobileMenuOpen={() => setMobileOpen(true)} />
-        <main className="min-h-[calc(100vh-60px)] mt-[60px]">
+        <main className="min-h-[calc(100dvh-60px)] mt-[60px]">
           <motion.div
             key={location.pathname}
             initial={{ opacity: 0, y: 6 }}
