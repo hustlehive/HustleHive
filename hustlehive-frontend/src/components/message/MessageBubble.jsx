@@ -96,7 +96,7 @@ const MessageBubble = ({ message, isMine, onEdit, onDelete, onDeleteForMe }) => 
                         'absolute bottom-full mb-1 w-40 bg-card border border-border rounded-[10px] shadow-lg z-20 overflow-hidden py-0.5',
                         isMine ? 'right-0' : 'left-0'
                       )}>
-                        {/* Edit — own messages within 5 mins */}
+                        {/* Edit - own messages within 5 mins */}
                         {canEdit && (
                           <button
                             onClick={() => {
@@ -111,7 +111,7 @@ const MessageBubble = ({ message, isMine, onEdit, onDelete, onDeleteForMe }) => 
                           </button>
                         )}
 
-                        {/* Delete for me — always available */}
+                        {/* Delete for me - always available */}
                         {canDeleteForMe && (
                           <button
                             onClick={() => {
@@ -125,7 +125,7 @@ const MessageBubble = ({ message, isMine, onEdit, onDelete, onDeleteForMe }) => 
                           </button>
                         )}
 
-                        {/* Delete for everyone — own messages within 20 mins */}
+                        {/* Delete for everyone - own messages within 20 mins */}
                         {canDeleteEveryone && (
                           <button
                             onClick={() => {

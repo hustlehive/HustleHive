@@ -49,7 +49,7 @@ const Inbox = () => {
   const friendUnread = allConversations.filter((c) => c.type === 'friend' && c.unreadCount > 0).length
   const hustleUnread = allConversations.filter((c) => c.type === 'hustle' && c.unreadCount > 0).length
 
-  // Find active conversation — match by conversationId field
+  // Find active conversation - match by conversationId field
   const activeConversation = allConversations.find(
     (c) => c.conversationId === conversationId
   ) || null
@@ -159,7 +159,7 @@ const Inbox = () => {
         </div>
       </div>
 
-      {/* Right — Chat window */}
+      {/* Right - Chat window */}
       <div
         className={cn(
           'flex-1 flex flex-col min-w-0',

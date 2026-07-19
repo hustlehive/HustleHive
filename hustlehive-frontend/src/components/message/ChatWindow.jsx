@@ -49,7 +49,7 @@ const MessagesSkeleton = () => (
   </div>
 )
 
-// E2E encryption notice — shown once above the first message
+// E2E encryption notice - shown once above the first message
 // const EncryptionNotice = () => (
 //   <div className="flex items-center justify-center gap-1.5 py-3 px-4">
 //     <Lock className="w-3 h-3 text-muted-foreground shrink-0" />
@@ -110,7 +110,7 @@ const ChatWindow = ({ conversation, onBack }) => {
     const socket = getSocket()
     if (!socket) return
 
-    // New message — append to cache
+    // New message - append to cache
     const handleNewMessage = (payload) => {
       const { conversationId: incomingId, message } = payload
       if (incomingId !== conversationId) return
@@ -125,7 +125,7 @@ const ChatWindow = ({ conversation, onBack }) => {
       markRead(conversationId)
     }
 
-    // Edited message — update content in cache for both sender and receiver
+    // Edited message - update content in cache for both sender and receiver
     const handleEditedMessage = (payload) => {
       const { conversationId: incomingId, message } = payload
       if (incomingId !== conversationId) return

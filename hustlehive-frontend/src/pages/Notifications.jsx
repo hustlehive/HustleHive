@@ -85,7 +85,7 @@ const Notifications = () => {
           <EmptyState
             icon={Bell}
             title="No notifications"
-            description="When something happens — applications, friend requests, messages — you'll see it here."
+            description="When something happens - applications, friend requests, messages - you'll see it here."
           />
         ) : (
           <div className="divide-y divide-border p-1">

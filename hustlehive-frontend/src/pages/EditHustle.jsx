@@ -23,7 +23,7 @@ const EditHustle = () => {
 
   const hustle = data?.hustle
 
-  // Guard — only creator can edit
+  // Guard - only creator can edit
   useEffect(() => {
     if (hustle && user && hustle.createdBy?._id !== user._id) {
       toast.error('You are not authorized to edit this hustle')

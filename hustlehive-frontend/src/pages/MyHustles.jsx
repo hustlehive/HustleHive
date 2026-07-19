@@ -15,7 +15,7 @@ const MyHustles = () => {
   const navigate = useNavigate()
   const { user } = useAuth()
 
-  // Safely extract ID — handles both _id and id from backend
+  // Safely extract ID - handles both _id and id from backend
   const userId = user?._id?.toString() || user?.id?.toString() || null
 
   const { data, isLoading, isError, refetch } = useQuery({

@@ -10,7 +10,7 @@ const axiosInstance = axios.create({
   },
 })
 
-// Request interceptor — attach JWT
+// Request interceptor - attach JWT
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = store.getState().auth.token
@@ -22,7 +22,7 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 )
 
-// Response interceptor — handle 401
+// Response interceptor - handle 401
 axiosInstance.interceptors.response.use(
   (response) => response.data,
   (error) => {

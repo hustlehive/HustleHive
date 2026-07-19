@@ -285,7 +285,7 @@ const Register = () => {
         </p>
       </div>
 
-      {/* Profile picture cropper — 1:1 square */}
+      {/* Profile picture cropper - 1:1 square */}
       <ImageCropper
         open={cropperOpen}
         imageSrc={rawImageSrc}

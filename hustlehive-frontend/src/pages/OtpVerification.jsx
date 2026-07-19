@@ -20,7 +20,7 @@ const OtpVerification = () => {
   const { mutate: registerUser, isPending: isRegistering } = useRegister()
   const { mutate: resendOtp, isPending: isResending } = useSendOtp()
 
-  // Guard — if someone navigates here directly without state
+  // Guard - if someone navigates here directly without state
   useEffect(() => {
     if (!formData) {
       navigate(ROUTES.REGISTER, { replace: true })

@@ -106,7 +106,7 @@ const Landing = () => {
             </h1>
 
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-              Post hustles, find talent, earn rewards — all within your verified college community.
+              Post hustles, find talent, earn rewards - all within your verified college community.
               Connect with peers, collaborate on projects, and build your network.
             </p>
 

@@ -190,7 +190,7 @@ const HustleDetails = () => {
         Back
       </button>
 
-      {/* Hero image — clickable */}
+      {/* Hero image - clickable */}
       {hustle.photo?.url && (
         <motion.div
           initial={{ opacity: 0, y: 8 }}
@@ -259,7 +259,7 @@ const HustleDetails = () => {
             </div>
           </div>
 
-          {/* Applicants — owner only */}
+          {/* Applicants - owner only */}
           {isOwner && (
             <div className="bg-card border border-border rounded-[15px] overflow-hidden">
               <button
@@ -422,7 +422,7 @@ const HustleDetails = () => {
         variant="destructive"
       />
 
-      {/* Lightbox — original image viewer */}
+      {/* Lightbox - original image viewer */}
       <ImageLightbox
         open={lightboxOpen}
         src={hustle.photo?.url}

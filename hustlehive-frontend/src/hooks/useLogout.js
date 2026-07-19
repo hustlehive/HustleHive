@@ -14,7 +14,7 @@ const useLogout = () => {
     // 1. Disconnect socket
     disconnectSocket()
 
-    // 2. Clear ALL TanStack Query cache — prevents stale data for next user
+    // 2. Clear ALL TanStack Query cache - prevents stale data for next user
     queryClient.clear()
 
     // 3. Clear Redux state + localStorage

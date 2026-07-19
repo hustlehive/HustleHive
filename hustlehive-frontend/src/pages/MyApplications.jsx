@@ -37,7 +37,7 @@ const ApplicationCard = ({ application, onMessage }) => {
       animate={{ opacity: 1, y: 0 }}
       className="bg-card border border-border rounded-[15px] p-4 hover:border-primary/30 transition-all duration-200 hover:shadow-card-hover"
     >
-      {/* Top row — title + status */}
+      {/* Top row - title + status */}
       <div
         onClick={() => navigate(ROUTES.HUSTLE_DETAILS(hustle?._id))}
         className="cursor-pointer"
@@ -73,7 +73,7 @@ const ApplicationCard = ({ application, onMessage }) => {
         </div>
       </div>
 
-      {/* Accepted — show message button */}
+      {/* Accepted - show message button */}
       {status === 'accepted' && hustle?._id && (
         <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
           <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">

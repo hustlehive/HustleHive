@@ -492,7 +492,7 @@ const Profile = () => {
         variant="destructive"
       />
 
-      {/* Profile picture cropper — 1:1 */}
+      {/* Profile picture cropper - 1:1 */}
       <ImageCropper
         open={cropperOpen}
         imageSrc={rawImageSrc}

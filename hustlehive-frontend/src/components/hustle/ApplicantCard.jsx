@@ -85,7 +85,7 @@ const ApplicantCard = ({ application, hustleId, hustleStatus }) => {
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          {/* Message — visible once accepted */}
+          {/* Message - visible once accepted */}
           {status === 'accepted' && (
             <button
               onClick={handleMessage}

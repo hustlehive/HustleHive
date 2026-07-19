@@ -74,7 +74,7 @@ const ConversationItem = ({ conversation, isActive, onClick }) => {
                   {getMessageTime(lastMessageAt)}
                 </span>
               )}
-              {/* Delete button — visible on hover */}
+              {/* Delete button - visible on hover */}
               <button
                 onClick={handleDelete}
                 title="Delete conversation for me"

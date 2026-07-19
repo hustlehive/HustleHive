@@ -12,7 +12,7 @@ import AppAvatar from '@/components/common/AppAvatar'
 import useAuth from '@/hooks/useAuth'
 import { useApplyToHustle } from '@/features/hustles/useHustles'
 
-// Safely extract id — handles populated object, plain string ObjectId, or object with id/_id
+// Safely extract id - handles populated object, plain string ObjectId, or object with id/_id
 const extractId = (val) => {
   if (!val) return null
   if (typeof val === 'string') return val
@@ -46,7 +46,7 @@ const HustleCard = ({ hustle, showIfOwner = false }) => {
   const deadlinePassed = isDeadlinePassed(deadline)
   const canApply = !isOwner && status === 'active' && !deadlinePassed
 
-  // createdBy may be unpopulated (just an id string) — handle gracefully
+  // createdBy may be unpopulated (just an id string) - handle gracefully
   const creatorName = typeof createdBy === 'object' ? createdBy?.fullName : null
   const creatorPic = typeof createdBy === 'object' ? createdBy?.profilePic?.url : null
 

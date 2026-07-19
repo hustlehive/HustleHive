@@ -23,7 +23,7 @@ const ImageLightbox = ({ open, src, alt, onClose }) => {
             className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm cursor-pointer"
           />
 
-          {/* Lightbox window — centered square dialog */}
+          {/* Lightbox window - centered square dialog */}
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
             <motion.div
               initial={{ opacity: 0, scale: 0.92 }}
@@ -46,7 +46,7 @@ const ImageLightbox = ({ open, src, alt, onClose }) => {
                 <X className="w-4 h-4" />
               </button>
 
-              {/* Image — original dimensions, centered, contained within square */}
+              {/* Image - original dimensions, centered, contained within square */}
               <div className="w-full h-full flex items-center justify-center">
                 <img
                   src={src}
