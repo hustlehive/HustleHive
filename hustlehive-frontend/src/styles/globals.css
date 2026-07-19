@@ -141,4 +141,8 @@
   .brand-gradient {
     background: linear-gradient(135deg, #2563EB 0%, #1d4ed8 100%);
   }
+
+  .pb-safe {
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
 }
