@@ -37,9 +37,12 @@ const app = express();
 
 const server = http.createServer(app);
 
+const allowedOrigins = process.env.ALLOWED_ORIGINS.split(",");
+
 const io = new Server(server, {
     cors: {
-        origin: "https://hustlehive.vercel.app"
+        origin: allowedOrigins,
+        credentials: true
     }
 });
 setIO(io);
@@ -65,9 +68,7 @@ app.use(compression());
 app.use(hpp());
 app.use(limiter);
 app.use(cors({
-    origin: [
-        "https://hustlehive.vercel.app"
-    ],
+    origin: allowedOrigins,
     credentials: true
 }));
 // app.use(cors());
