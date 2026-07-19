@@ -34,13 +34,18 @@ const RootLayout = () => {
         )}
       >
         <Topbar onMobileMenuOpen={() => setMobileOpen(true)} />
-        <main className="min-h-[calc(100dvh-60px)] mt-[60px]">
+        <main className="h-[calc(100dvh-60px)] mt-[60px] overflow-hidden flex flex-col">
           <motion.div
             key={location.pathname}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="p-4 md:p-6 h-full"
+            className={cn(
+              'flex-1 min-h-0',
+              location.pathname.includes('/inbox')
+                ? 'p-0 overflow-hidden'
+                : 'p-4 md:p-6 overflow-y-auto'
+            )}
           >
             <Outlet />
           </motion.div>

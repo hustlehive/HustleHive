@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Trash2 } from 'lucide-react'
+import useLongPress from '@/hooks/useLongPress'
 import { cn } from '@/utils/cn'
 import AppAvatar from '@/components/common/AppAvatar'
 import ConfirmDialog from '@/components/common/ConfirmDialog'
@@ -19,6 +20,7 @@ const ConversationItem = ({ conversation, isActive, onClick }) => {
 
   const [deleteOpen, setDeleteOpen] = useState(false)
   const { mutate: deleteConv, isPending: isDeleting } = useDeleteConversationForMe()
+  const { revealed, handlers: longPressHandlers } = useLongPress()
 
   const name = user?.fullName || 'Unknown'
   const pic = user?.profilePic?.url || null
@@ -26,8 +28,8 @@ const ConversationItem = ({ conversation, isActive, onClick }) => {
   const preview = !lastMessage
     ? 'No messages yet'
     : lastMessage.deletedForEveryone
-    ? 'This message was deleted.'
-    : lastMessage.content || ''
+      ? 'This message was deleted.'
+      : lastMessage.content || ''
 
   const handleDelete = (e) => {
     e.stopPropagation()
@@ -44,8 +46,9 @@ const ConversationItem = ({ conversation, isActive, onClick }) => {
     <>
       <div
         onClick={onClick}
+        {...longPressHandlers}
         className={cn(
-          'w-full flex items-center gap-3 px-3 py-3 rounded-lg text-left transition-colors cursor-pointer group',
+          'w-full flex items-center gap-3 px-3 py-3 rounded-lg text-left transition-colors cursor-pointer group select-none',
           isActive
             ? 'bg-primary/10 border border-primary/20'
             : 'hover:bg-accent border border-transparent'
@@ -78,7 +81,10 @@ const ConversationItem = ({ conversation, isActive, onClick }) => {
               <button
                 onClick={handleDelete}
                 title="Delete conversation for me"
-                className="p-1 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors opacity-0 group-hover:opacity-100"
+                className={cn(
+                  'p-1 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors',
+                  revealed ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                )}
               >
                 <Trash2 className="w-3.5 h-3.5" />
               </button>

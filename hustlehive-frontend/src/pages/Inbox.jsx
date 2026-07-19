@@ -79,8 +79,8 @@ const Inbox = () => {
 
   return (
     <div
-      className="flex bg-background rounded-[15px] border border-border overflow-hidden"
-      style={{ height: 'calc(100dvh - 130px)' }}
+      className="flex bg-background border border-border overflow-hidden w-full"
+      style={{ height: '100%' }}
     >
       {/* Left panel */}
       <div

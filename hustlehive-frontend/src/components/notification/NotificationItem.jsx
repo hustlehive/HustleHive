@@ -3,6 +3,7 @@ import { Trash2, Circle } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { getRelativeTime } from '@/utils/getRelativeTime'
 import AppAvatar from '@/components/common/AppAvatar'
+import useLongPress from '@/hooks/useLongPress'
 
 const NotificationItem = ({
   notification,
@@ -11,13 +12,15 @@ const NotificationItem = ({
   compact = false,
 }) => {
   const { _id, title, body, isRead, createdAt, sender } = notification
+  const { revealed, handlers: longPressHandlers } = useLongPress()
 
   return (
     <motion.div
       initial={{ opacity: 0, x: -4 }}
       animate={{ opacity: 1, x: 0 }}
+      {...longPressHandlers}
       className={cn(
-        'flex items-start gap-3 p-3 rounded-lg transition-colors group',
+        'flex items-start gap-3 p-3 rounded-lg transition-colors group select-none',
         !isRead && 'bg-primary/5',
         'hover:bg-accent'
       )}
@@ -65,7 +68,10 @@ const NotificationItem = ({
           <button
             onClick={() => onDelete?.(_id)}
             title="Delete notification"
-            className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors opacity-0 group-hover:opacity-100"
+            className={cn(
+              'p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors',
+              revealed ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+            )}
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>
