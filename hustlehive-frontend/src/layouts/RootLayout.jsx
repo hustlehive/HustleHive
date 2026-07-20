@@ -21,7 +21,7 @@ const RootLayout = () => {
   }, [location.pathname])
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background">
       <Sidebar
         mobileOpen={mobileOpen}
         onMobileClose={() => setMobileOpen(false)}

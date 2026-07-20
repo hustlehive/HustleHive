@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import { Send } from 'lucide-react'
 import { cn } from '@/utils/cn'
+import EmojiPicker from './EmojiPicker'
 
 const ChatInput = ({ onSend, isPending, disabled }) => {
   const [content, setContent] = useState('')
@@ -29,12 +30,18 @@ const ChatInput = ({ onSend, isPending, disabled }) => {
     setContent(el.value)
   }
 
+  const handleEmojiClick = (emoji) => {
+    setContent((prev) => prev + emoji)
+    textareaRef.current?.focus()
+  }
+
   return (
     <div className="border-t border-border bg-card px-4 py-3 pb-safe">
       <form
         onSubmit={handleSubmit}
-        className="flex items-end gap-3"
+        className="flex items-end gap-2"
       >
+        <EmojiPicker onEmojiClick={handleEmojiClick} />
         <textarea
           ref={textareaRef}
           value={content}

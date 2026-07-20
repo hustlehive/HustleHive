@@ -10,7 +10,7 @@ import { getRelativeTime } from '@/utils/getRelativeTime'
 import StatusBadge from '@/components/common/StatusBadge'
 import AppAvatar from '@/components/common/AppAvatar'
 import useAuth from '@/hooks/useAuth'
-import { useApplyToHustle } from '@/features/hustles/useHustles'
+import { useApplyToHustle, useMyApplications } from '@/features/hustles/useHustles'
 
 // Safely extract id - handles populated object, plain string ObjectId, or object with id/_id
 const extractId = (val) => {
@@ -40,6 +40,12 @@ const HustleCard = ({ hustle, showIfOwner = false }) => {
   const currentUserId = extractId(user)
   const creatorId = extractId(createdBy)
   const isOwner = !!(currentUserId && creatorId && currentUserId === creatorId)
+
+  const { data: myApplicationsData } = useMyApplications()
+  const alreadyApplied = myApplicationsData?.applications?.some((app) => {
+    const appHustleId = extractId(app.hustle) || app.hustle?.toString()
+    return appHustleId === _id?.toString()
+  }) ?? false
 
   if (isOwner && !showIfOwner) return null
 
@@ -100,7 +106,6 @@ const HustleCard = ({ hustle, showIfOwner = false }) => {
 
         <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
           <div className="flex items-center gap-1">
-            <DollarSign className="w-3.5 h-3.5 text-emerald-500" />
             <span className="font-semibold text-emerald-600 dark:text-emerald-400">
               {formatReward(reward)}
             </span>
@@ -135,7 +140,7 @@ const HustleCard = ({ hustle, showIfOwner = false }) => {
             </div>
           </div>
 
-          {canApply && (
+          {canApply && !alreadyApplied && (
             <button
               onClick={handleApply}
               disabled={isApplying}
@@ -147,10 +152,15 @@ const HustleCard = ({ hustle, showIfOwner = false }) => {
             >
               {isApplying ? (
                 <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : ( 
+              ) : (
                 'Apply'
               )}
             </button>
+          )}
+          {canApply && alreadyApplied && (
+            <span className="shrink-0 px-3 py-1.5 text-xs font-medium rounded-md bg-muted text-muted-foreground">
+              Applied
+            </span>
           )}
         </div>
       </div>
