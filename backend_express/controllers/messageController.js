@@ -334,7 +334,7 @@ const getInbox = asyncHandler(async (req, res) => {
         )
         .populate(
             "lastMessage",
-            "content type sender createdAt deletedForEveryone"
+            "content type sender createdAt deletedForEveryone hiddenFor"
         )
         .sort({ lastMessageAt: -1 });
 
