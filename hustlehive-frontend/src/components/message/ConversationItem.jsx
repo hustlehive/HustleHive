@@ -6,8 +6,10 @@ import AppAvatar from '@/components/common/AppAvatar'
 import ConfirmDialog from '@/components/common/ConfirmDialog'
 import { getMessageTime } from '@/utils/getRelativeTime'
 import { useDeleteConversationForMe } from '@/features/messages/useMessages'
+import useAuth from '@/hooks/useAuth'
 
 const ConversationItem = ({ conversation, isActive, onClick }) => {
+
   const {
     conversationId,
     type,
@@ -22,14 +24,24 @@ const ConversationItem = ({ conversation, isActive, onClick }) => {
   const { mutate: deleteConv, isPending: isDeleting } = useDeleteConversationForMe()
   const { revealed, handlers: longPressHandlers } = useLongPress()
 
+  const { userId } = useAuth()
+
   const name = user?.fullName || 'Unknown'
   const pic = user?.profilePic?.url || null
+
+  const isHiddenForMe = lastMessage?.hiddenFor?.some(
+    (id) => id?.toString() === userId
+  )
+
+  console.log(`$hidden for: ${lastMessage.hiddenFor} and ishiddenforme: ${isHiddenForMe} and current user id: ${userId}`)
 
   const preview = !lastMessage
     ? 'No messages yet'
     : lastMessage.deletedForEveryone
       ? 'This message was deleted.'
-      : lastMessage.content || ''
+      : isHiddenForMe
+        ? 'Deleted for you'
+        : lastMessage.content || ''
 
   const handleDelete = (e) => {
     e.stopPropagation()
@@ -94,7 +106,8 @@ const ConversationItem = ({ conversation, isActive, onClick }) => {
           <div className="flex items-center justify-between gap-2">
             <p className={cn(
               'text-xs truncate',
-              unreadCount > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'
+              unreadCount > 0 ? 'text-foreground font-medium' : 'text-muted-foreground',
+              isHiddenForMe && 'italic'
             )}>
               {preview}
             </p>

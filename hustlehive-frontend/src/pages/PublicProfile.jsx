@@ -190,10 +190,6 @@ const PublicProfile = () => {
               <MapPin className="w-3.5 h-3.5" />
               <span>{profile.college}</span>
             </div>
-            <div className="flex items-center gap-1.5 mt-2 text-sm text-muted-foreground">
-              <Mail className="w-3.5 h-3.5" />
-              <span>{profile.email}</span>
-            </div>
 
             {profile.bio && (
               <p className="mt-3 text-sm text-foreground leading-relaxed">{profile.bio}</p>
