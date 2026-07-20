@@ -29,12 +29,8 @@ const ConversationItem = ({ conversation, isActive, onClick }) => {
   const name = user?.fullName || 'Unknown'
   const pic = user?.profilePic?.url || null
 
-  const isHiddenForMe = lastMessage?.hiddenFor?.some(
-    (id) => id?.toString() === userId
-  )
-
-  console.log(`$hidden for: ${lastMessage.hiddenFor} and ishiddenforme: ${isHiddenForMe} and current user id: ${userId}`)
-
+  const isHiddenForMe = lastMessage==null ? false : lastMessage.hiddenFor?.some((id) => id?.toString() === userId)
+  console.log(`hidden for me: ${isHiddenForMe}`)
   const preview = !lastMessage
     ? 'No messages yet'
     : lastMessage.deletedForEveryone
