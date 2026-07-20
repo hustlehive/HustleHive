@@ -29,9 +29,7 @@ const ConversationItem = ({ conversation, isActive, onClick }) => {
   const name = user?.fullName || 'Unknown'
   const pic = user?.profilePic?.url || null
 
-  const isHiddenForMe = lastMessage?.hiddenFor?.some(
-    (id) => id?.toString() === userId
-  )
+  const isHiddenForMe = lastMessage?.hiddenFor ? lastMessage?.hiddenFor?.some((id) => id?.toString() === userId) : false
 
   console.log(`$hidden for: ${lastMessage.hiddenFor} and ishiddenforme: ${isHiddenForMe} and current user id: ${userId}`)
 
