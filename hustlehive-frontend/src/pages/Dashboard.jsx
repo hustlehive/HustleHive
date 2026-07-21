@@ -17,6 +17,11 @@ import { ROUTES } from '@/constants/routes'
 import { cn } from '@/utils/cn'
 import useDebounce from '@/hooks/useDebounce'
 import useAuth from '@/hooks/useAuth'
+import { useQuery } from '@tanstack/react-query'
+import { getUserHustles } from '@/api/users.api'
+import { queryKeys } from '@/constants/queryKeys'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useRef } from 'react'
 
 const extractId = (val) => {
   if (!val) return null
@@ -35,11 +40,79 @@ const SORT_OPTIONS = [
 const STATUS_OPTIONS = ['active', 'assigned', 'completed', 'cancelled']
 const COLLEGE_OPTIONS = ['NSUT', 'DTU', 'IGDTUW']
 
+const MyHustlesCarousel = ({ userId }) => {
+  const navigate = useNavigate()
+  const scrollRef = useRef(null)
+
+  const { data, isLoading } = useQuery({
+    queryKey: queryKeys.userHustles(userId),
+    queryFn: () => getUserHustles(userId),
+    enabled: !!userId,
+    staleTime: 30_000,
+  })
+
+  const hustles = data?.hustles || []
+
+  const scroll = (dir) => {
+    if (!scrollRef.current) return
+    scrollRef.current.scrollBy({ left: dir === 'left' ? -300 : 300, behavior: 'smooth' })
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex gap-4 overflow-hidden mb-6">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="min-w-[260px] h-48 bg-muted rounded-[15px] animate-pulse shrink-0" />
+        ))}
+      </div>
+    )
+  }
+
+  if (hustles.length === 0) return null
+
+  return (
+    <div className="mb-6">
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-sm font-semibold text-foreground">Your Hustles</p>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => scroll('left')}
+            className="p-1.5 rounded-md border border-border text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => scroll('right')}
+            className="p-1.5 rounded-md border border-border text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => navigate(ROUTES.MY_HUSTLES)}
+            className="ml-1 text-xs text-primary hover:underline font-medium"
+          >
+            View all
+          </button>
+        </div>
+      </div>
+      <div
+        ref={scrollRef}
+        className="flex gap-4 overflow-x-auto no-scrollbar pb-1"
+      >
+        {hustles.map((hustle) => (
+          <div key={hustle._id} className="min-w-[260px] max-w-[260px] shrink-0">
+            <HustleCard hustle={hustle} showIfOwner={true} />
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 const Dashboard = () => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const { user } = useAuth()
-
+  const { user, userId } = useAuth()
   const [search, setSearch] = useState(searchParams.get('q') || '')
   const [page, setPage] = useState(1)
   const [sort, setSort] = useState('')
@@ -110,11 +183,14 @@ const Dashboard = () => {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
+          {/* <p className="text-sm text-muted-foreground mt-0.5">
             {getSubtitle()}
-          </p>
+          </p> */}
         </div>
       </div>
+
+      {/* My Hustles Carousel */}
+      <MyHustlesCarousel userId={userId} />
 
       {/* Search + Controls */}
       <div className="flex flex-col sm:flex-row gap-3 mb-4">
@@ -326,8 +402,8 @@ const Dashboard = () => {
             debouncedSearch || hasActiveFilters
               ? 'Try adjusting your search or filters.'
               : hustles.length > 0
-              ? 'All available hustles were posted by you. Create more or check back later.'
-              : 'Be the first to post a hustle!'
+                ? 'All available hustles were posted by you. Create more or check back later.'
+                : 'Be the first to post a hustle!'
           }
           action={
             <button

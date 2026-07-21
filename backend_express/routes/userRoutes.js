@@ -13,7 +13,9 @@ const {
     getMyProfile,
     getUserProfile,
     getUserHustles,
-    getUserFriends
+    getUserFriends,
+    softDeleteMyAccount,
+    changeUsername
 } = require("../controllers/userController");
 
 
@@ -45,5 +47,9 @@ router.get("/me", protect, getMyProfile);
 router.get("/:userId/hustles", protect, getUserHustles);
 router.get("/:userId/friends", protect, getUserFriends);
 router.get("/:userId", protect, getUserProfile);
+router.put("/username", protect, changeUsername);
+
+
+router.delete("/me", protect, softDeleteMyAccount);
 
 module.exports = router;
