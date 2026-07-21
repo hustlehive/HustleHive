@@ -4,7 +4,6 @@ import { motion } from 'framer-motion'
 import {
   ArrowLeft,
   Calendar,
-  DollarSign,
   MapPin,
   Clock,
   Edit,
@@ -314,7 +313,6 @@ const HustleDetails = () => {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <DollarSign className="w-3.5 h-3.5" />
                   Reward
                 </div>
                 <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">

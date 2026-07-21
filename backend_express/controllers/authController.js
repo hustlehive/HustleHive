@@ -5,7 +5,7 @@ const asyncHandler = require("express-async-handler");
 const generateOTP = require("../utils/generateOTP");
 const sendEmail = require("../utils/sendEmail");
 const generateToken = require("../utils/generateToken");
-const cloudinary=require("../config/cloudinary");
+const cloudinary = require("../config/cloudinary");
 
 const getCollegeFromEmail = (email) => {
 
@@ -103,6 +103,7 @@ const registerUser = asyncHandler(async (req, res) => {
         otp
     } = req.body;
 
+    username = username.toLowerCase();
 
     // Check Required Fields
     if (!fullName || !username || !email || !password || !otp) {
@@ -241,6 +242,11 @@ const loginUser = asyncHandler(async (req, res) => {
     if (!user) {
         res.status(401);
         throw new Error("Invalid username/email or password");
+    }
+
+    if (user.isDeleted) {
+        res.status(403);
+        throw new Error("This account has been deleted");
     }
 
 

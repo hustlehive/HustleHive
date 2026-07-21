@@ -13,7 +13,7 @@ import { formatReward } from '@/utils/formatReward'
 import { formatDate, isDeadlinePassed } from '@/utils/formatDate'
 import { getRelativeTime } from '@/utils/getRelativeTime'
 import { cn } from '@/utils/cn'
-import { Calendar, DollarSign, Clock } from 'lucide-react'
+import { Calendar, Clock } from 'lucide-react'
 import useAuth from '@/hooks/useAuth'
 
 const ApplicationCard = ({ application, onMessage }) => {
@@ -51,7 +51,6 @@ const ApplicationCard = ({ application, onMessage }) => {
 
         <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
           <div className="flex items-center gap-1">
-            <DollarSign className="w-3.5 h-3.5 text-emerald-500" />
             <span className="font-semibold text-emerald-600 dark:text-emerald-400">
               {formatReward(hustle?.reward)}
             </span>

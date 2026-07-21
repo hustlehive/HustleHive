@@ -41,3 +41,5 @@ export const getPublicProfile = (userId) => axios.get(`/users/${userId}`)
 export const getUserHustles = (userId) => axios.get(`/users/${userId}/hustles`)
 
 export const getUserFriends = (userId) => axios.get(`/users/${userId}/friends`)
+
+export const updateUsername = (data) => axios.put('/users/username', data)

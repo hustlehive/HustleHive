@@ -12,10 +12,14 @@ import {
   X,
   Loader2,
   MapPin,
+  Pen,
 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { updateUsername } from '@/api/users.api'
+import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import {
   useMyProfile,
   useUpdateProfile,
@@ -39,6 +43,9 @@ import { ROUTES } from '@/constants/routes'
 import { cn } from '@/utils/cn'
 import useAuth from '@/hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
+import { useDispatch } from 'react-redux'
+import { updateUser } from '@/app/slices/authSlice'
+
 
 const TABS = [
   { id: 'about', label: 'About', icon: User },
@@ -297,6 +304,7 @@ const FriendsTab = () => {
 // ── Main Profile Page ──
 const Profile = () => {
   const { user: authUser } = useAuth()
+  const dispatch = useDispatch()
   const userId = (authUser?._id || authUser?.id)?.toString()
   const navigate = useNavigate()
 
@@ -305,6 +313,36 @@ const Profile = () => {
   const [deletePicOpen, setDeletePicOpen] = useState(false)
   const [cropperOpen, setCropperOpen] = useState(false)
   const [rawImageSrc, setRawImageSrc] = useState(null)
+
+  const queryClient = useQueryClient()
+  const [usernameDialogOpen, setUsernameDialogOpen] = useState(false)
+  const [newUsername, setNewUsername] = useState('')
+  const [usernameError, setUsernameError] = useState('')
+  const [isSavingUsername, setIsSavingUsername] = useState(false)
+
+  const handleUsernameSubmit = async (e) => {
+    e.preventDefault()
+    const trimmed = newUsername.trim()
+    if (!trimmed) { setUsernameError('Username is required'); return }
+    if (trimmed.length < 3) { setUsernameError('At least 3 characters'); return }
+    if (trimmed.length > 20) { setUsernameError('Max 20 characters'); return }
+    if (!/^[a-zA-Z0-9_]+$/.test(trimmed)) { setUsernameError('Only letters, numbers, underscores'); return }
+    setIsSavingUsername(true)
+    try {
+      await updateUsername({ username: trimmed })
+      dispatch(updateUser({ username: trimmed }))
+      queryClient.invalidateQueries({ queryKey: ['profile', 'me'] })
+      toast.success('Username updated!')
+      setUsernameDialogOpen(false)
+      setNewUsername('')
+      setUsernameError('')
+    } catch (err) {
+      setUsernameError(err.message || 'Failed to update username')
+    } finally {
+      setIsSavingUsername(false)
+    }
+  }
+
   const fileInputRef = useRef(null)
 
   const { data, isLoading } = useMyProfile()
@@ -392,7 +430,16 @@ const Profile = () => {
             <div className="flex items-start justify-between gap-3 flex-wrap">
               <div>
                 <h1 className="text-xl font-bold text-foreground">{user?.fullName}</h1>
-                <p className="text-sm text-muted-foreground">@{user?.username}</p>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <p className="text-sm text-muted-foreground">@{user?.username}</p>
+                  <button
+                    onClick={() => { setNewUsername(user?.username || ''); setUsernameDialogOpen(true) }}
+                    className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                    title="Edit username"
+                  >
+                    <Pen className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
               <button
                 onClick={() => { setActiveTab('about'); setIsEditing(true) }}
@@ -501,6 +548,73 @@ const Profile = () => {
         onComplete={handleCropComplete}
         onCancel={() => { setCropperOpen(false); setRawImageSrc(null) }}
       />
+
+      {/* Username edit dialog */}
+      <AnimatePresence>
+        {usernameDialogOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setUsernameDialogOpen(false)}
+              className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+            />
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 8 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 8 }}
+                transition={{ duration: 0.2 }}
+                className="bg-card border border-border rounded-[15px] p-6 w-full max-w-sm shadow-xl"
+              >
+                <h3 className="text-base font-semibold text-foreground mb-1">Edit Username</h3>
+                <p className="text-xs text-muted-foreground mb-4">
+                  Choose a unique username (letters, numbers, underscores only).
+                </p>
+                <form onSubmit={handleUsernameSubmit} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-foreground">New Username</label>
+                    <input
+                      type="text"
+                      value={newUsername}
+                      onChange={(e) => { setNewUsername(e.target.value); setUsernameError('') }}
+                      placeholder="e.g. johndoe_99"
+                      autoFocus
+                      className={cn(
+                        'w-full px-3 py-2.5 text-sm rounded-md border bg-background text-foreground',
+                        'placeholder:text-muted-foreground outline-none transition-colors',
+                        'focus:ring-2 focus:ring-primary/30 focus:border-primary',
+                        usernameError ? 'border-destructive' : 'border-input'
+                      )}
+                    />
+                    {usernameError && (
+                      <p className="text-xs text-destructive">{usernameError}</p>
+                    )}
+                  </div>
+                  <div className="flex gap-3 justify-end">
+                    <button
+                      type="button"
+                      onClick={() => { setUsernameDialogOpen(false); setUsernameError('') }}
+                      className="px-4 py-2 text-sm text-muted-foreground border border-border rounded-md hover:bg-accent transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSavingUsername}
+                      className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-primary text-white rounded-md hover:bg-primary/90 transition-colors disabled:opacity-60"
+                    >
+                      {isSavingUsername ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                      Save
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
+            </div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

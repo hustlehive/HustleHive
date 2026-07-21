@@ -24,11 +24,21 @@ const protect = asyncHandler(async (req, res, next) => {
             // Get User
             req.user = await User.findById(decoded.id).select("-password");
 
+            if (!req.user) {
+                res.status(401);
+                throw new Error("User not found");
+            }
+
+            if (req.user.isDeleted) {
+                res.status(401);
+                throw new Error("Account has been deleted");
+            }
+
             next();
 
         } catch (error) {
             res.status(401);
-            throw new Error("Not authorized, token failed");
+            throw new Error(error.message || "Not authorized, token failed");
         }
 
     }

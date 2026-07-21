@@ -1,7 +1,7 @@
 import { memo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Calendar, DollarSign, MapPin, Clock, Zap } from 'lucide-react'
+import { Calendar, MapPin, Clock, Zap } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { ROUTES } from '@/constants/routes'
 import { formatReward } from '@/utils/formatReward'

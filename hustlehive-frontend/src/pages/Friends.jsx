@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Users,
@@ -274,7 +274,9 @@ const CardSkeleton = () => (
 
 // ── Main Friends Page ──
 const Friends = () => {
-  const [activeTab, setActiveTab] = useState('friends')
+  const [searchParams] = useSearchParams()
+  const initialTab = searchParams.get('tab') || 'friends'
+  const [activeTab, setActiveTab] = useState(initialTab)  
   const [searchQuery, setSearchQuery] = useState('')
   const debouncedSearch = useDebounce(searchQuery, 350)
 

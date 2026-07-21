@@ -4,6 +4,8 @@ import { cn } from '@/utils/cn'
 import { getRelativeTime } from '@/utils/getRelativeTime'
 import AppAvatar from '@/components/common/AppAvatar'
 import useLongPress from '@/hooks/useLongPress'
+import { useNavigate } from 'react-router-dom'
+import { ROUTES } from '@/constants/routes'
 
 const NotificationItem = ({
   notification,
@@ -11,8 +13,16 @@ const NotificationItem = ({
   onDelete,
   compact = false,
 }) => {
-  const { _id, title, body, isRead, createdAt, sender } = notification
+  const { _id, title, body, isRead, createdAt, sender, type } = notification
   const { revealed, handlers: longPressHandlers } = useLongPress()
+  const navigate = useNavigate()
+
+  const handleClick = () => {
+    if (!isRead) onMarkRead?.(_id)
+    if (type === 'friend_request') {
+      navigate(`${ROUTES.FRIENDS}?tab=received`)
+    }
+  }
 
   return (
     <motion.div
@@ -36,7 +46,7 @@ const NotificationItem = ({
       {/* Content */}
       <div
         className="flex-1 min-w-0 cursor-pointer"
-        onClick={() => !isRead && onMarkRead?.(_id)}
+        onClick={handleClick}
       >
         <p className={cn(
           'text-xs leading-relaxed text-foreground',

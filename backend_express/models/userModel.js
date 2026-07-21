@@ -56,7 +56,22 @@ const userSchema = mongoose.Schema(
         bio: {
             type: String,
             default: ""
-        }
+        },
+        
+        isDeleted: {
+            type: Boolean,
+            default: false
+        },
+
+        deletedAt: {
+            type: Date,
+            default: null
+        },
+
+        usernameLastChangedAt: {
+            type: Date,
+            default: null
+        },
     },
     {
         timestamps: true
