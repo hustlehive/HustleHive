@@ -34,6 +34,11 @@ const protect = asyncHandler(async (req, res, next) => {
                 throw new Error("Account has been deleted");
             }
 
+            if(req.user.isBanned){
+                res.status(403);
+                throw new Error("Account has been banned");
+            }
+
             next();
 
         } catch (error) {

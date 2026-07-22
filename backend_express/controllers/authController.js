@@ -249,6 +249,13 @@ const loginUser = asyncHandler(async (req, res) => {
         throw new Error("This account has been deleted");
     }
 
+    if(user.isBanned){
+        res.status(403);
+        throw new Error("Account has been banned");
+    }
+
+    console.log(`user is deleted: ${user.isDeleted} ; user is banned: ${user.isBanned}`);
+
 
     // Compare Password
     const isMatch = await user.matchPassword(password);
