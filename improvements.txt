@@ -1,0 +1,27 @@
+>report system, 
+
+>delete my id system
+
+>Help: contact option
+
+
+
+
+
+
+
+NOTE: for new files send complete code, but for old files that need to be changed send only the code that needs to be added/replaced and also tell where
+also NOTE: to reduce output token , do not talk unnecessarily or explain things unnecessarily until i ask. After you have given all codes, just tell in the end what functinos should now work
+
+
+
+
+
+
+>save hustle
+>owner & applicant rating
+>block user
+>owner can archive his hustles
+>share hustle
+>verified users (will pay)
+>resume/work link (string) in application of a hustle

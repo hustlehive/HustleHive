@@ -53,6 +53,16 @@ const hustleSchema = mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
             required: true
+        },
+
+        isDeletedByAdmin: {
+            type: Boolean,
+            default: false
+        },
+
+        deletedByAdminAt: {
+            type: Date,
+            default: null
         }
     },
     {
