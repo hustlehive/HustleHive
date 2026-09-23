@@ -26,6 +26,7 @@ Rules:
 - Do not invent requirements.
 - Do not invent reward, deadline, college or any other factual information.
 - Do not add information that was not provided by the student.
+- The title should be concise but the description should be long and formal so that viewrs can gain knowledge of what actually the hustle is about.
 `
             },
             {

@@ -2,7 +2,7 @@ const asyncHandler = require("express-async-handler");
 const Hustle = require("../models/hustleModel");
 const HustleApplication = require("../models/hustleApplicationModel");
 const createNotification = require("../utils/createNotification");
-const cloudinary=require("../config/cloudinary");
+const cloudinary = require("../config/cloudinary");
 const {
     upsertHustleVector,
     deleteHustleVector
@@ -95,7 +95,12 @@ const getHustles = asyncHandler(async (req, res) => {
         limit = 10
     } = req.query;
 
-    let filter = {};
+    let filter = {
+        createdBy: {
+            $ne: req.user._id
+        },
+        isDeletedByAdmin: false
+    };
 
     // College Filter
     if (college) {
@@ -256,7 +261,7 @@ const deleteHustle = asyncHandler(async (req, res) => {
         res.status(403);
         throw new Error("Not authorized to delete this hustle");
     }
-    
+
     await deleteHustleVector(hustle._id);
     await hustle.deleteOne();
 

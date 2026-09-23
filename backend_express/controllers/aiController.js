@@ -35,7 +35,8 @@ const askHustleHiveController = asyncHandler(async (req, res) => {
     }
 
     const result = await askHustleHive(
-        question.trim()
+        question.trim(),
+        req.user._id
     );
 
     res.status(200).json({

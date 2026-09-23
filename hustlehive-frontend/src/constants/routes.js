@@ -32,6 +32,9 @@ export const ROUTES = {
   ADMIN_REPORTED_USERS: '/admin/reported-users',
   ADMIN_REPORTED_HUSTLES: '/admin/reported-hustles',
 
+  //AI
+  AI_RESULTS: '/app/ai-results',
+
   // Misc
   NOT_FOUND: '*',
 }

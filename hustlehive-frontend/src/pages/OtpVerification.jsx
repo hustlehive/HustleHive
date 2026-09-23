@@ -63,7 +63,7 @@ const OtpVerification = () => {
     const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, OTP_LENGTH)
     if (!pasted) return
     const newOtp = Array(OTP_LENGTH).fill('')
-    pasted.split('').forEach((char, i) => { newOtp[i] = char })
+    pasted.split('').forEach((char, idx) => { newOtp[idx] = char })
     setOtp(newOtp)
     focusInput(Math.min(pasted.length, OTP_LENGTH - 1))
   }

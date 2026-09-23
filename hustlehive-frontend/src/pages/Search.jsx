@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Search as SearchIcon, Users, Zap, UserPlus } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { searchUsers } from '@/api/users.api'
-import { getHustles } from '@/api/hustles.api'
+import { searchHustlesAI } from '@/api/hustles.api'
 import { queryKeys } from '@/constants/queryKeys'
 import HustleCard from '@/components/hustle/HustleCard'
 import HustleCardSkeleton from '@/components/skeletons/HustleCardSkeleton'
@@ -120,8 +120,8 @@ const Search = () => {
 
   // Hustle search
   const { data: hustleData, isLoading: loadingHustles } = useQuery({
-    queryKey: queryKeys.hustles({ search: debouncedQuery, page, limit: 12 }),
-    queryFn: () => getHustles({ search: debouncedQuery, page, limit: 12 }),
+    queryKey: ['search', 'hustles', 'ai', debouncedQuery],
+    queryFn: () => searchHustlesAI(debouncedQuery),
     enabled: activeTab === 'hustles' && !!debouncedQuery,
     staleTime: 20_000,
   })
@@ -211,20 +211,14 @@ const Search = () => {
             ) : (
               <>
                 <p className="text-xs text-muted-foreground mb-4">
-                  {hustleData?.total} result{hustleData?.total !== 1 ? 's' : ''} for "{debouncedQuery}"
+                  {hustleData?.count ?? hustles.length} result{(hustleData?.count ?? hustles.length) !== 1 ? 's' : ''} for "{debouncedQuery}"
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {hustles.map((hustle) => (
                     <HustleCard key={hustle._id} hustle={hustle} />
                   ))}
                 </div>
-                <div className="mt-6">
-                  <Pagination
-                    page={page}
-                    totalPages={totalPages}
-                    onPageChange={(p) => { setPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
-                  />
-                </div>
+                
               </>
             )}
           </motion.div>

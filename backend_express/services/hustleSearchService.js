@@ -2,7 +2,7 @@ const index = require("./pineconeService");
 const generateEmbedding = require("./embeddingService");
 const Hustle = require("../models/hustleModel");
 
-const searchHustles = async (query, topK = 10) => {
+const searchHustles = async (query, userId, topK = 50) => {
 
     // 1. Convert user's search query into an embedding
     const queryEmbedding = await generateEmbedding(query);
@@ -16,6 +16,9 @@ const searchHustles = async (query, topK = 10) => {
         filter: {
             isDeletedByAdmin: {
                 $eq: false
+            },
+            createdBy: {
+                $ne: userId.toString()
             }
         }
     });
@@ -37,7 +40,10 @@ const searchHustles = async (query, topK = 10) => {
         _id: {
             $in: hustleIds
         },
-        isDeletedByAdmin: false
+        isDeletedByAdmin: false,
+        createdBy: {
+            $ne: userId.toString()
+        }
     });
 
     // 5. Preserve Pinecone's similarity ranking
