@@ -1,11 +1,9 @@
->report system, 
+> admin routes and apis
+>report system (backend done, frontend implementation needed)
 
 >delete my id system
 
 >Help: contact option
-
-
-
 
 
 

@@ -9,6 +9,10 @@ const Message = require("../models/messageModel");
 const Conversation = require("../models/conversationModel");
 const Notification = require("../models/notificationModel");
 const Report = require("../models/reportModel");
+const {
+    upsertHustleVector,
+    deleteHustleVector
+} = require("../services/hustleVectorService");
 
 
 const getDashboard = asyncHandler(async (req, res) => {
@@ -190,7 +194,8 @@ const deleteHustle = asyncHandler(async (req, res) => {
         referenceId: hustle._id
     });
 
-    await hustle.deleteOne();
+    await deleteHustleVector(hustle._id);
+    await hustle.deleteOne();    
 
     res.status(200).json({
         success: true,
@@ -479,6 +484,8 @@ const deleteReportedHustle = asyncHandler(async (req, res) => {
 
     await hustle.save();
 
+    await upsertHustleVector(hustle);
+
     res.status(200).json({
         success: true,
         message: "Hustle deleted successfully"
@@ -507,6 +514,8 @@ const restoreHustle = asyncHandler(async (req, res) => {
     hustle.deletedByAdminAt = null;
 
     await hustle.save();
+
+    await upsertHustleVector(hustle);
 
     res.status(200).json({
         success: true,
