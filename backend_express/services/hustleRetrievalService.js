@@ -2,9 +2,14 @@ const index = require("./pineconeService");
 const generateEmbedding = require("./embeddingService");
 const Hustle = require("../models/hustleModel");
 
-const retrieveRelevantHustles = async (query, topK = 5) => {
+const retrieveRelevantHustles = async (
+    query,
+    userId,
+    topK = 50,
+    similarityThreshold = 0.65
+) => {
 
-    // 1. Convert the user's question into an embedding
+    // 1. Convert user's question into an embedding
     const queryEmbedding = await generateEmbedding(query);
 
     // 2. Search Pinecone
@@ -16,11 +21,14 @@ const retrieveRelevantHustles = async (query, topK = 5) => {
         filter: {
             isDeletedByAdmin: {
                 $eq: false
+            },
+            createdBy: {
+                $ne: userId.toString()
             }
         }
     });
 
-    // 3. Extract IDs and similarity scores
+    // 4. Extract IDs and similarity scores
     const matches = results.matches.map(match => ({
         hustleId: match.id,
         score: match.score
@@ -30,7 +38,7 @@ const retrieveRelevantHustles = async (query, topK = 5) => {
         return [];
     }
 
-    // 4. Fetch actual hustle documents from MongoDB
+    // 5. Fetch actual Hustle documents from MongoDB
     const hustleIds = matches.map(
         match => match.hustleId
     );
@@ -39,10 +47,13 @@ const retrieveRelevantHustles = async (query, topK = 5) => {
         _id: {
             $in: hustleIds
         },
+        createdBy: {
+            $ne: userId.toString()
+        },
         isDeletedByAdmin: false
     });
 
-    // 5. Create a lookup map
+    // 6. Create lookup map
     const hustleMap = new Map(
         hustles.map(hustle => [
             hustle._id.toString(),
@@ -50,7 +61,7 @@ const retrieveRelevantHustles = async (query, topK = 5) => {
         ])
     );
 
-    // 6. Preserve Pinecone ranking
+    // 7. Preserve Pinecone ranking + similarity score
     return matches
         .map(match => ({
             hustle: hustleMap.get(match.hustleId),

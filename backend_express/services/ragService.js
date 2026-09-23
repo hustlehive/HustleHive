@@ -5,12 +5,12 @@ const groq = new Groq({
     apiKey: process.env.GROQ_API
 });
 
-const askHustleHive = async (question) => {
+const askHustleHive = async (question, user_id) => {
 
     // 1. Retrieve relevant hustles
     const results = await retrieveRelevantHustles(
         question,
-        5
+        user_id
     );
 
     // 2. If nothing was retrieved

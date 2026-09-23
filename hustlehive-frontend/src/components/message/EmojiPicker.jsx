@@ -46,7 +46,7 @@ const EmojiPicker = ({ onEmojiClick }) => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 8 }}
             transition={{ duration: 0.15 }}
-            className="absolute bottom-full mb-2 right-0 z-50 shadow-2xl rounded-[15px] overflow-hidden"
+            className="fixed bottom-[80px] left-1/2 -translate-x-1/2 z-50 shadow-2xl rounded-[15px] overflow-hidden sm:absolute sm:bottom-full sm:left-auto sm:right-0 sm:translate-x-0 sm:mb-2"
           >
             <EmojiPickerLib
               theme={themeMode === 'dark' ? 'dark' : 'light'}

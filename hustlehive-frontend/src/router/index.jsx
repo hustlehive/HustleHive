@@ -54,6 +54,9 @@ const AdminReportedHustles = lazy(() => import('@/pages/admin/AdminReportedHustl
 //Legal
 const Legal = lazy(() => import('@/pages/Legal'))
 
+//AI
+const AIResults = lazy(() => import('@/pages/AIResults'))
+
 const AppRouter = () => {
   return (
     <BrowserRouter>
@@ -93,6 +96,7 @@ const AppRouter = () => {
               <Route path="/app/notifications" element={<Notifications />} />
               <Route path="/app/profile" element={<Profile />} />
               <Route path="/app/users/:userId" element={<PublicProfile />} />
+              <Route path="/app/ai-results" element={<AIResults />} />
             </Route>
           </Route>
 

@@ -33,3 +33,5 @@ export const uploadHustleImage = (hustleId, formData) =>
 
 export const deleteHustleImage = (hustleId) =>
   axios.delete(`/hustles/${hustleId}/image`)
+
+export const searchHustlesAI = (q) => axios.get('/search/hustles', { params: { q } })

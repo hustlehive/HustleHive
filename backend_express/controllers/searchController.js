@@ -10,7 +10,7 @@ const searchHustlesController = asyncHandler(async (req, res) => {
         throw new Error("Search query is required");
     }
 
-    const hustles = await searchHustles(q.trim());
+    const hustles = await searchHustles(q.trim(), req.user._id);
 
     res.status(200).json({
         success: true,

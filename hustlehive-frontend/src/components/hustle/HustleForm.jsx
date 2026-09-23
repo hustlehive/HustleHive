@@ -6,9 +6,12 @@ import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import ImageUploader from '@/components/common/ImageUploader'
+import { improveHustleWithAI } from '@/api/ai.api'
+import { Sparkles } from 'lucide-react'
+import { toast } from 'sonner'
 
 const hustleSchema = z.object({
-  title: z.string().min(3, 'Title must be at least 3 characters').max(100, 'Title too long'),
+  title: z.string().min(5, 'Title must be at least 5 characters').max(100, 'Title too long'),
   description: z.string().min(10, 'Description must be at least 10 characters'),
   reward: z
     .string()
@@ -20,11 +23,14 @@ const hustleSchema = z.object({
 const HustleForm = ({ onSubmit, isPending, defaultValues, submitLabel = 'Create Hustle' }) => {
   const [imageFile, setImageFile] = useState(null)
   const [imagePreview, setImagePreview] = useState(defaultValues?.imageUrl || null)
+  const [isImproving, setIsImproving] = useState(false)
 
   const {
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(hustleSchema),
@@ -37,6 +43,32 @@ const HustleForm = ({ onSubmit, isPending, defaultValues, submitLabel = 'Create 
         : '',
     },
   })
+
+  const titleValue = watch('title') || ''
+
+  const handleImprove = async () => {
+    const title = watch('title')
+    const description = watch('description')
+    if (!title || title.trim().length < 5) {
+      toast.error('Please enter a title with at least 5 characters to improve with AI')
+      return
+    }
+    setIsImproving(true)
+    try {
+      const data = await improveHustleWithAI({ title: title.trim(), description: description?.trim() || '' })
+      if (data?.success && data?.improvedHustle) {
+        setValue('title', data.improvedHustle.title)
+        setValue('description', data.improvedHustle.description)
+        toast.success('Content improved with AI!')
+      } else {
+        toast.error('Please enter some title and description to improve with AI.')
+      }
+    } catch (err) {
+      toast.error(err.message || 'Please enter some title and description to improve with AI.')
+    } finally {
+      setIsImproving(false)
+    }
+  }
 
   useEffect(() => {
     if (defaultValues) {
@@ -130,6 +162,32 @@ const HustleForm = ({ onSubmit, isPending, defaultValues, submitLabel = 'Create 
           <p className="text-xs text-destructive">{errors.description.message}</p>
         )}
       </div>
+
+      {/* Improve with AI button */}
+      <button
+        type="button"
+        onClick={handleImprove}
+        disabled={isImproving || titleValue.trim().length < 5}
+        className={cn(
+          'flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors',
+          titleValue.trim().length >= 5
+            ? 'bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20'
+            : 'bg-muted text-muted-foreground cursor-not-allowed border border-border',
+          'disabled:cursor-not-allowed'
+        )}
+      >
+        {isImproving ? (
+          <>
+            <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+            Improving...
+          </>
+        ) : (
+          <>
+            <Sparkles className="w-4 h-4" />
+            Improve with AI
+          </>
+        )}
+      </button>
 
       {/* Reward + Deadline */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

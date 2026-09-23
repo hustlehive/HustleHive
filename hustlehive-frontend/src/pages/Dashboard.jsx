@@ -22,6 +22,9 @@ import { getUserHustles } from '@/api/users.api'
 import { queryKeys } from '@/constants/queryKeys'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useRef } from 'react'
+import { askHustleHive } from '@/api/ai.api'
+import { Bot, Sparkles } from 'lucide-react'
+import { toast } from 'sonner'
 
 const extractId = (val) => {
   if (!val) return null
@@ -123,11 +126,35 @@ const Dashboard = () => {
   const [showFilters, setShowFilters] = useState(false)
   const [sortOpen, setSortOpen] = useState(false)
 
+  const [aiQuery, setAiQuery] = useState('')
+  const [isAskingAI, setIsAskingAI] = useState(false)
+
+  const handleAskAI = async (e) => {
+    e.preventDefault()
+    if (!aiQuery.trim()) return
+    setIsAskingAI(true)
+    try {
+      const data = await askHustleHive({ question: aiQuery.trim() })
+      navigate(ROUTES.AI_RESULTS, {
+        state: {
+          answer: data.answer,
+          sources: data.sources,
+          question: aiQuery.trim(),
+        },
+      })
+      setAiQuery('')
+    } catch (err) {
+      toast.error(err.message || 'Something went wrong')
+    } finally {
+      setIsAskingAI(false)
+    }
+  }
+
   const debouncedSearch = useDebounce(search, 400)
 
   const filters = useMemo(() => ({
     page,
-    limit: 12,
+    limit: 50,
     ...(debouncedSearch && { search: debouncedSearch }),
     ...(sort && { sort }),
     ...(status && { status }),
@@ -141,12 +168,16 @@ const Dashboard = () => {
   const hustles = data?.hustles || []
   const totalPages = data?.totalPages || 1
 
-  // Count only hustles not created by current user for display
   const currentUserId = extractId(user)
+
+  // Filter own hustles out after fetching
   const visibleHustles = hustles.filter((h) => {
     const creatorId = extractId(h.createdBy)
-    return currentUserId && creatorId ? currentUserId !== creatorId : true
+    return !(currentUserId && creatorId && currentUserId === creatorId)
   })
+
+  // Count only hustles not created by current user for display
+
 
   const hasActiveFilters = status || college || minReward || maxReward
 
@@ -192,31 +223,44 @@ const Dashboard = () => {
       {/* My Hustles Carousel */}
       <MyHustlesCarousel userId={userId} />
 
-      {/* Search + Controls */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-4">
-        {/* Search */}
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+      {/* Ask AI */}
+      <form onSubmit={handleAskAI} className="mb-5">
+        <div className="flex gap-2 p-3 bg-primary/5 border border-primary/20 rounded-[15px] items-center">
+          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
+            <Sparkles className="w-4 h-4 text-white" />
+          </div>
           <input
-            type="search"
-            value={search}
-            onChange={(e) => handleSearch(e.target.value)}
-            placeholder="Search hustles..."
+            type="text"
+            value={aiQuery}
+            onChange={(e) => setAiQuery(e.target.value)}
+            placeholder="Ask AI — e.g. Are there any design hustles available?"
             className={cn(
-              'w-full pl-9 pr-4 py-2.5 text-sm rounded-md border border-input bg-background',
-              'text-foreground placeholder:text-muted-foreground',
-              'outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors'
+              'flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none'
             )}
           />
-          {search && (
-            <button
-              onClick={() => handleSearch('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
+          <button
+            type="submit"
+            disabled={!aiQuery.trim() || isAskingAI}
+            className={cn(
+              'flex items-center gap-1.5 px-4 py-2 text-xs font-medium rounded-md transition-colors shrink-0',
+              aiQuery.trim()
+                ? 'bg-primary text-white hover:bg-primary/90'
+                : 'bg-muted text-muted-foreground cursor-not-allowed'
+            )}
+          >
+            {isAskingAI ? (
+              <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <Bot className="w-3.5 h-3.5" />
+            )}
+            Ask
+          </button>
         </div>
+      </form>
+
+      {/* Search + Controls */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-4">
+
 
         {/* Sort */}
         <div className="relative">
@@ -238,7 +282,7 @@ const Dashboard = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -6 }}
                 transition={{ duration: 0.15 }}
-                className="absolute right-0 top-full mt-1 w-48 bg-card border border-border rounded-[12px] shadow-lg z-20 overflow-hidden py-1"
+                className="absolute top-full mt-1 w-48 bg-card border border-border rounded-[12px] shadow-lg z-20 overflow-hidden py-1"
               >
                 {SORT_OPTIONS.map((opt) => (
                   <button
@@ -417,7 +461,7 @@ const Dashboard = () => {
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {hustles.map((hustle) => (
+            {visibleHustles.map((hustle) => (
               <HustleCard key={hustle._id} hustle={hustle} />
             ))}
           </div>
@@ -432,24 +476,7 @@ const Dashboard = () => {
         </>
       )}
 
-      {/* Floating Create Button */}
-      {/* <motion.button
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={() => navigate(ROUTES.HUSTLE_CREATE)}
-        className={cn(
-          'fixed bottom-6 right-6 z-20',
-          'flex items-center gap-2 px-5 py-3 rounded-full shadow-lg',
-          'bg-primary text-white font-medium text-sm',
-          'hover:bg-primary/90 transition-colors'
-        )}
-        aria-label="Create a hustle"
-      >
-        <Plus className="w-5 h-5" />
-        <span className="hidden sm:inline">Create Hustle</span>
-      </motion.button> */}
+
     </div>
   )
 }
