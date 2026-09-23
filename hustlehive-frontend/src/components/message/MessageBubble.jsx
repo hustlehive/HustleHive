@@ -157,7 +157,7 @@ const MessageBubble = ({ message, isMine, onEdit, onDelete, onDeleteForMe }) => 
               </div>
             )}
 
-            {/* Message bubble — long press on mobile opens menu */}
+            {/* Message bubble - long press on mobile opens menu */}
             {isEditing ? (
               <form onSubmit={handleEditSubmit} className="flex gap-2 items-end">
                 <textarea

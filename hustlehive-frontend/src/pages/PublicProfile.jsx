@@ -196,7 +196,7 @@ const PublicProfile = () => {
                     Add Friend
                   </button>
                 )}
-                {/* Report button — always visible for other users */}
+                {/* Report button - always visible for other users */}
                 <button
                   onClick={() => setReportOpen(true)}
                   className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-destructive/30 text-destructive rounded-md hover:bg-destructive/10 transition-colors"

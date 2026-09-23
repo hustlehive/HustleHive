@@ -1,6 +1,7 @@
 export const ROUTES = {
   // Public
   LANDING: '/',
+  LEGAL: '/legal',
   LOGIN: '/login',
   REGISTER: '/register',
   REGISTER_VERIFY: '/register/verify',

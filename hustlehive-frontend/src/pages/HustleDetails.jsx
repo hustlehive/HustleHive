@@ -398,7 +398,7 @@ const HustleDetails = () => {
                   )}
                 </button>
               )}
-              {/* Report hustle — non-owner only */}
+              {/* Report hustle - non-owner only */}
 
             </>
           )}

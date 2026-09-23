@@ -8,7 +8,7 @@ const StatCard = ({ icon: Icon, label, value, color }) => (
       <Icon className="w-6 h-6" />
     </div>
     <div>
-      <p className="text-2xl font-bold text-foreground">{value ?? '—'}</p>
+      <p className="text-2xl font-bold text-foreground">{value ?? '-'}</p>
       <p className="text-xs text-muted-foreground">{label}</p>
     </div>
   </div>

@@ -51,6 +51,9 @@ const AdminApplications = lazy(() => import('@/pages/admin/AdminApplications'))
 const AdminReportedUsers = lazy(() => import('@/pages/admin/AdminReportedUsers'))
 const AdminReportedHustles = lazy(() => import('@/pages/admin/AdminReportedHustles'))
 
+//Legal
+const Legal = lazy(() => import('@/pages/Legal'))
+
 const AppRouter = () => {
   return (
     <BrowserRouter>
@@ -59,6 +62,8 @@ const AppRouter = () => {
 
           {/* ── Public landing ── */}
           <Route path="/" element={<Landing />} />
+          <Route path="/legal" element={<Legal />} />
+
 
           {/* ── Guest-only routes (redirect to dashboard if logged in) ── */}
           <Route element={<GuestRoute />}>

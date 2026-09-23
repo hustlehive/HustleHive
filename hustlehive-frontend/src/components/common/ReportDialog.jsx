@@ -71,7 +71,7 @@ const ReportDialog = ({ open, onClose, onSubmit, isPending, type = 'user', targe
                                     <Flag className="w-4 h-4 text-destructive" />
                                     <h3 className="text-sm font-semibold text-foreground">
                                         Report {type === 'user' ? 'User' : 'Hustle'}
-                                        {targetName && <span className="text-muted-foreground font-normal"> — {targetName}</span>}
+                                        {targetName && <span className="text-muted-foreground font-normal"> - {targetName}</span>}
                                     </h3>
                                 </div>
                                 <button onClick={handleClose} className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">
