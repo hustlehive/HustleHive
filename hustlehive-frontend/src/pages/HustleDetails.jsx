@@ -1,4 +1,7 @@
 import { useState } from 'react'
+import { Flag } from 'lucide-react'
+import ReportDialog from '@/components/common/ReportDialog'
+import { useReportHustle } from '@/features/report/useReport'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
@@ -151,6 +154,16 @@ const HustleDetails = () => {
     deleteHustle(id, {
       onSuccess: () => navigate(ROUTES.MY_HUSTLES, { replace: true }),
     })
+  }
+
+  const [reportOpen, setReportOpen] = useState(false)
+  const { mutate: submitHustleReport, isPending: isReporting } = useReportHustle()
+
+  const handleHustleReport = (data) => {
+    submitHustleReport(
+      { hustleId: id, data },
+      { onSuccess: () => setReportOpen(false) }
+    )
   }
 
   if (isLoading) {
@@ -385,7 +398,19 @@ const HustleDetails = () => {
                   )}
                 </button>
               )}
+              {/* Report hustle - non-owner only */}
+
             </>
+          )}
+
+          {!isOwner && (
+            <button
+              onClick={() => setReportOpen(true)}
+              className="w-full flex items-center justify-center gap-2 py-2 text-xs font-medium text-destructive hover:bg-destructive/10 rounded-md transition-colors border border-destructive/20"
+            >
+              <Flag className="w-3.5 h-3.5" />
+              Report Hustle
+            </button>
           )}
 
           {isOwner && (
@@ -418,6 +443,15 @@ const HustleDetails = () => {
         description="This will permanently delete the hustle and all its applications."
         confirmText="Delete"
         variant="destructive"
+      />
+
+      <ReportDialog
+        open={reportOpen}
+        onClose={() => setReportOpen(false)}
+        onSubmit={handleHustleReport}
+        isPending={isReporting}
+        type="hustle"
+        targetName={hustle?.title}
       />
 
       {/* Lightbox - original image viewer */}

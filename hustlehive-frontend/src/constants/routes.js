@@ -1,6 +1,7 @@
 export const ROUTES = {
   // Public
   LANDING: '/',
+  LEGAL: '/legal',
   LOGIN: '/login',
   REGISTER: '/register',
   REGISTER_VERIFY: '/register/verify',
@@ -28,6 +29,8 @@ export const ROUTES = {
   ADMIN_USERS: '/admin/users',
   ADMIN_HUSTLES: '/admin/hustles',
   ADMIN_APPLICATIONS: '/admin/applications',
+  ADMIN_REPORTED_USERS: '/admin/reported-users',
+  ADMIN_REPORTED_HUSTLES: '/admin/reported-hustles',
 
   // Misc
   NOT_FOUND: '*',

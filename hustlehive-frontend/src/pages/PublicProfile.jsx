@@ -1,4 +1,7 @@
 import { useState } from 'react'
+import { Flag } from 'lucide-react'
+import ReportDialog from '@/components/common/ReportDialog'
+import { useReportUser } from '@/features/report/useReport'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -97,6 +100,16 @@ const PublicProfile = () => {
     })
   }
 
+  const [reportOpen, setReportOpen] = useState(false)
+  const { mutate: submitReport, isPending: isReporting } = useReportUser()
+
+  const handleReportSubmit = (data) => {
+    submitReport(
+      { userId, data },
+      { onSuccess: () => setReportOpen(false) }
+    )
+  }
+
   if (loadingProfile) return (
     <div className="max-w-3xl mx-auto">
       <ProfileSkeleton />
@@ -183,6 +196,14 @@ const PublicProfile = () => {
                     Add Friend
                   </button>
                 )}
+                {/* Report button - always visible for other users */}
+                <button
+                  onClick={() => setReportOpen(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-destructive/30 text-destructive rounded-md hover:bg-destructive/10 transition-colors"
+                >
+                  <Flag className="w-3.5 h-3.5" />
+                  Report
+                </button>
               </div>
             </div>
 
@@ -309,6 +330,15 @@ const PublicProfile = () => {
           )}
         </motion.div>
       </AnimatePresence>
+
+      <ReportDialog
+        open={reportOpen}
+        onClose={() => setReportOpen(false)}
+        onSubmit={handleReportSubmit}
+        isPending={isReporting}
+        type="user"
+        targetName={profile?.fullName}
+      />
 
       <ConfirmDialog
         open={unfriendOpen}

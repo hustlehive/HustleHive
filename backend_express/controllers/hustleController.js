@@ -3,6 +3,10 @@ const Hustle = require("../models/hustleModel");
 const HustleApplication = require("../models/hustleApplicationModel");
 const createNotification = require("../utils/createNotification");
 const cloudinary=require("../config/cloudinary");
+const {
+    upsertHustleVector,
+    deleteHustleVector
+} = require("../services/hustleVectorService");
 
 const createHustle = asyncHandler(async (req, res) => {
 
@@ -57,6 +61,8 @@ const createHustle = asyncHandler(async (req, res) => {
             college: req.user.college,
             createdBy: req.user._id
         });
+
+        await upsertHustleVector(hustle);
 
         res.status(200).json({
             success: true,
@@ -229,6 +235,8 @@ const updateHustle = asyncHandler(async (req, res) => {
 
     const updatedHustle = await hustle.save();
 
+    await upsertHustleVector(hustle);
+
     res.status(200).json({
         success: true,
         hustle: updatedHustle
@@ -248,7 +256,8 @@ const deleteHustle = asyncHandler(async (req, res) => {
         res.status(403);
         throw new Error("Not authorized to delete this hustle");
     }
-
+    
+    await deleteHustleVector(hustle._id);
     await hustle.deleteOne();
 
     res.status(200).json({
