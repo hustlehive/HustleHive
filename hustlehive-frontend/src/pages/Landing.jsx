@@ -194,7 +194,10 @@ const Landing = () => {
 
       {/* Footer */}
       <footer className="border-t border-border py-6 px-6 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} HustleHive. Built for college hustlers.
+        © {new Date().getFullYear()} HustleHive. Built for college hustlers.{' '}
+        <Link to={ROUTES.LEGAL} className="text-primary hover:underline">
+          Community Guidelines & Privacy Policy
+        </Link>
       </footer>
     </div>
   )
