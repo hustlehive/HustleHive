@@ -48,9 +48,8 @@ const AdminDashboard = lazy(() => import('@/pages/admin/AdminDashboard'))
 const AdminUsers = lazy(() => import('@/pages/admin/AdminUsers'))
 const AdminHustles = lazy(() => import('@/pages/admin/AdminHustles'))
 const AdminApplications = lazy(() => import('@/pages/admin/AdminApplications'))
-
-//Legal
-const Legal = lazy(() => import('@/pages/Legal'))
+const AdminReportedUsers = lazy(() => import('@/pages/admin/AdminReportedUsers'))
+const AdminReportedHustles = lazy(() => import('@/pages/admin/AdminReportedHustles'))
 
 const AppRouter = () => {
   return (
@@ -60,7 +59,6 @@ const AppRouter = () => {
 
           {/* ── Public landing ── */}
           <Route path="/" element={<Landing />} />
-          <Route path="/legal" element={<Legal />} />
 
           {/* ── Guest-only routes (redirect to dashboard if logged in) ── */}
           <Route element={<GuestRoute />}>
@@ -100,6 +98,8 @@ const AppRouter = () => {
               <Route path="/admin/users" element={<AdminUsers />} />
               <Route path="/admin/hustles" element={<AdminHustles />} />
               <Route path="/admin/applications" element={<AdminApplications />} />
+              <Route path="/admin/reported-users" element={<AdminReportedUsers />} />
+              <Route path="/admin/reported-hustles" element={<AdminReportedHustles />} />
             </Route>
           </Route>
 

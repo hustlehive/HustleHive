@@ -16,6 +16,7 @@ import {
   ChevronRight,
   LogOut,
   Zap,
+  Flag
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { ROUTES } from '@/constants/routes'
@@ -46,6 +47,8 @@ const navItems = [
 
 const adminItems = [
   { label: 'Admin Panel', icon: ShieldCheck, to: ROUTES.ADMIN_DASHBOARD },
+  { label: 'Reported Users', icon: Flag, to: ROUTES.ADMIN_REPORTED_USERS },
+  { label: 'Reported Hustles', icon: Flag, to: ROUTES.ADMIN_REPORTED_HUSTLES },
 ]
 
 const NavItem = ({ item, collapsed, unreadMessages, unreadNotifications }) => {

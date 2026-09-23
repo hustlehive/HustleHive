@@ -1,4 +1,4 @@
-import { Outlet, Link } from 'react-router-dom'
+import { Outlet } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import ThemeToggle from '@/components/common/ThemeToggle'
 
@@ -31,11 +31,8 @@ const AuthLayout = () => {
       </main>
 
       {/* Footer */}
-      <footer className="text-center py-4 text-xs text-muted-foreground space-x-1">
-        <span>© {new Date().getFullYear()} HustleHive.</span>
-        <Link to={ROUTES.LEGAL} className="text-primary hover:underline">
-          Guidelines & Privacy
-        </Link>
+      <footer className="text-center py-4 text-xs text-muted-foreground">
+        © {new Date().getFullYear()} HustleHive. Built for college hustlers.
       </footer>
     </div>
   )

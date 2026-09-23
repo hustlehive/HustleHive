@@ -28,9 +28,8 @@ export const ROUTES = {
   ADMIN_USERS: '/admin/users',
   ADMIN_HUSTLES: '/admin/hustles',
   ADMIN_APPLICATIONS: '/admin/applications',
-
-
-  LEGAL: '/legal',
+  ADMIN_REPORTED_USERS: '/admin/reported-users',
+  ADMIN_REPORTED_HUSTLES: '/admin/reported-hustles',
 
   // Misc
   NOT_FOUND: '*',
