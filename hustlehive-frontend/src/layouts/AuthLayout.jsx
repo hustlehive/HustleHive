@@ -1,6 +1,7 @@
 import { Outlet, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import ThemeToggle from '@/components/common/ThemeToggle'
+import { ROUTES } from '@/constants/routes'
 
 const AuthLayout = () => {
   return (
