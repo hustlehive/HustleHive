@@ -14,31 +14,28 @@ const OtpVerification = () => {
   const [otp, setOtp] = useState(Array(OTP_LENGTH).fill(''))
   const inputRefs = useRef([])
 
-  const formData = location.state?.formData
-  const imageFile = location.state?.imageFile
+  // Safely extract from location state
+  const stateFormData = location.state?.formData || null
+  const stateImageFile = location.state?.imageFile || null
 
   const { mutate: registerUser, isPending: isRegistering } = useRegister()
   const { mutate: resendOtp, isPending: isResending } = useSendOtp()
 
-  // Guard - if someone navigates here directly without state
   useEffect(() => {
-    if (!formData) {
+    if (!stateFormData) {
       navigate(ROUTES.REGISTER, { replace: true })
     }
-  }, [formData, navigate])
+  }, [stateFormData, navigate])
 
   const focusInput = (index) => {
     inputRefs.current[index]?.focus()
   }
 
   const handleChange = (index, value) => {
-    // Only allow single digit
     const digit = value.replace(/\D/g, '').slice(-1)
     const newOtp = [...otp]
     newOtp[index] = digit
     setOtp(newOtp)
-
-    // Auto-advance
     if (digit && index < OTP_LENGTH - 1) {
       focusInput(index + 1)
     }
@@ -60,10 +57,15 @@ const OtpVerification = () => {
 
   const handlePaste = (e) => {
     e.preventDefault()
-    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, OTP_LENGTH)
+    const pasted = e.clipboardData
+      .getData('text')
+      .replace(/\D/g, '')
+      .slice(0, OTP_LENGTH)
     if (!pasted) return
     const newOtp = Array(OTP_LENGTH).fill('')
-    pasted.split('').forEach((char, idx) => { newOtp[idx] = char })
+    for (let pos = 0; pos < pasted.length; pos++) {
+      newOtp[pos] = pasted[pos]
+    }
     setOtp(newOtp)
     focusInput(Math.min(pasted.length, OTP_LENGTH - 1))
   }
@@ -76,33 +78,41 @@ const OtpVerification = () => {
       return
     }
 
-    const form = new FormData()
-    form.append('fullName', formData.fullName)
-    form.append('username', formData.username)
-    form.append('email', formData.email)
-    form.append('password', formData.password)
-    form.append('otp', otpString)
-    if (imageFile) form.append('image', imageFile)
+    // Build FormData fresh — never mutate location.state
+    const formData = new FormData()
+    formData.append('fullName', stateFormData.fullName)
+    formData.append('username', stateFormData.username)
+    formData.append('email', stateFormData.email)
+    formData.append('password', stateFormData.password)
+    formData.append('otp', otpString)
 
-    registerUser(form)
+    // stateImageFile from router state may be a plain object (serialized),
+    // not a real File — handle both cases
+    if (stateImageFile) {
+      if (stateImageFile instanceof File || stateImageFile instanceof Blob) {
+        formData.append('image', stateImageFile)
+      }
+      // If it's been serialized by router (loses File type), skip silently
+    }
+
+    registerUser(formData)
   }
 
   const handleResend = () => {
-    if (!formData?.email) return
+    if (!stateFormData?.email) return
     resendOtp(
-      { email: formData.email },
+      { email: stateFormData.email },
       { onSuccess: () => toast.success('OTP resent successfully') }
     )
   }
 
-  if (!formData) return null
+  if (!stateFormData) return null
 
   const otpString = otp.join('')
   const isComplete = otpString.length === OTP_LENGTH
 
   return (
     <div className="bg-card border border-border rounded-[15px] p-8 shadow-card">
-      {/* Back */}
       <button
         onClick={() => navigate(ROUTES.REGISTER)}
         className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
@@ -111,7 +121,6 @@ const OtpVerification = () => {
         Back to Register
       </button>
 
-      {/* Header */}
       <div className="text-center mb-8">
         <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
           <Mail className="w-7 h-7 text-primary" />
@@ -121,11 +130,10 @@ const OtpVerification = () => {
           We sent a 6-digit OTP to
         </p>
         <p className="text-sm font-medium text-foreground mt-0.5">
-          {formData.email}
+          {stateFormData.email}
         </p>
       </div>
 
-      {/* OTP Input */}
       <form onSubmit={handleSubmit}>
         <div className="flex items-center justify-center gap-2 mb-8">
           {otp.map((digit, index) => (
@@ -171,7 +179,6 @@ const OtpVerification = () => {
         </button>
       </form>
 
-      {/* Resend */}
       <p className="mt-6 text-center text-sm text-muted-foreground">
         Didn't receive the code?{' '}
         <button
