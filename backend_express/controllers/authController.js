@@ -97,13 +97,12 @@ const registerUser = asyncHandler(async (req, res) => {
 
     const {
         fullName,
-        username,
         email,
         password,
         otp
     } = req.body;
-
-    username = username.toLowerCase();
+    
+    const username = req.body.username?.trim().toLowerCase();
 
     // Check Required Fields
     if (!fullName || !username || !email || !password || !otp) {
